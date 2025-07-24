@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.user;
+package com.cuonglm.ecommerce.backend.user.enums;
 
 /**
  * <p>
@@ -15,7 +15,7 @@ public enum UserStatus {
     /**
      * Tạm ngừng (user tự deactivate)
      */
-    INACTIVE,
+    DEACTIVATED,
 
     /**
      * Bị khóa tạm thời
@@ -25,5 +25,10 @@ public enum UserStatus {
     /**
      * Bị ban vĩnh viễn
      */
-    BANNED
+    BANNED,
+
+    /**
+     * Đã xóa (soft delete để đảm bảo pháp gì gì đó sau này)
+     */
+    DELETED,
 }

@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
+/**
+ * <p>District entity</p>
+ * Created By: CuongLM - 10/07/2025
+ */
 @Entity
 @Table(name = "districts")
 public class District {

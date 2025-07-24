@@ -6,7 +6,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.util.List;
-
+/**
+ * <p>Province entity</p>
+ * Created By: CuongLM - 10/07/2025
+ */
 @Entity
 @Table(name = "provinces")
 public class Province {

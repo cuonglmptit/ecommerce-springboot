@@ -1,7 +1,9 @@
-package com.cuonglm.ecommerce.backend.user;
+package com.cuonglm.ecommerce.backend.user.entity;
 
 import com.cuonglm.ecommerce.backend.address.Address;
 import com.cuonglm.ecommerce.backend.core.identity.UserRole;
+import com.cuonglm.ecommerce.backend.user.enums.Gender;
+import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -13,12 +15,18 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 /**
- * <p>User entity</p>
- * Created By: CuongLM - 06/07/2025
+ * User – Người dùng hệ thống.
+ *
+ * <p>
+ * Thực thể User của hệ thống
+ * </p>
+ *
+ * @author cuonglmptit
+ * @since Sunday, 06 July 2025
  */
 @Entity
 @Table(
@@ -41,7 +49,17 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z0-9_\\.]+$")
     private String username;
 
-    @Column(nullable = false, length = 128)
+    /**
+     * Created By: cuonglmptit - 19/07/2025
+     * <p>
+     * Trường mật khẩu dạng hash.
+     * </p>
+     * <p>
+     * nullable = true: Để tối ưu UX thì nếu user đăng nhập bằng oauth2 thì không cần mật khẩu.
+     * Chỉ khi nào user có thao tác thêm sđt hoặc thay đổi email thì sẽ cần tạo mật khẩu.
+     * </p>
+     */
+    @Column(nullable = true, length = 128)
     @NotNull
     private String passwordHash;
 
@@ -75,6 +93,10 @@ public class User {
 
     private LocalDate dateOfBirth;
 
+    @Column(nullable = true)
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
     //07/07/25Phần này chưa xong, sẽ làm thêm audit chuẩn hơn (đang xem xét 2 cách là audit bằng extend/interface hoặc theo spring)
     //08/07/25 thêm tạm, sau này hiểu về spring security và audit thì thực hiện thêm
     @CreatedBy
@@ -99,6 +121,22 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status;
+
+    /**
+     * Các tài khoản đăng nhập bằng bên thứ 3 (OAuth2)
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserOAuth2> oauthAccounts = new ArrayList<>();
+
+    public void addOAuthAccount(UserOAuth2 account) {
+        oauthAccounts.add(account);
+        account.setUser(this);
+    }
+
+    public void removeOAuthAccount(UserOAuth2 account) {
+        oauthAccounts.remove(account);
+        account.setUser(null);
+    }
 
     //<editor-fold desc="Getters">
     public Long getId() {

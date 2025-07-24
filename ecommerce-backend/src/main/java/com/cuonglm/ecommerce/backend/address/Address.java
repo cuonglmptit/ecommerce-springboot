@@ -3,7 +3,7 @@ package com.cuonglm.ecommerce.backend.address;
 import com.cuonglm.ecommerce.backend.location.entity.District;
 import com.cuonglm.ecommerce.backend.location.entity.Province;
 import com.cuonglm.ecommerce.backend.location.entity.Ward;
-import com.cuonglm.ecommerce.backend.user.User;
+import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
