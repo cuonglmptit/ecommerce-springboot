@@ -37,46 +37,68 @@ Phải xác minh (OTP hoặc link)
 Nếu định danh đã gắn với user khác → không cho thêm
 (tránh chiếm tài khoản như case Converse)
 
-20/07/2025:
+20/07/2025:  
 Logic về tạo tài khoản với oauth2: User tạo tài khoản bằng provider nào đeo đầu tiên => lấy email đó gắn vào user local đầu tiên (VD ban đầu là cuonglm1@gmail.com)
 Nếu có provider nào đấy cũng lại dùng đăng nhập hoặc đăng ký thì nếu trùng email và xác minh email đó chính chủ => vào đúng tài khoản có email đó
-Nếu như sau này mà facebook đổi email chính (cuonglm1@gmail.com => cuonglm2@gmail.com) => thì vẫn còn provideruserid của provider đó => vẫn đăng nhập vào user local cũ đấy và email thì vẫn là email được tạo đầu tiên (cuonglm1@gmail.com) dù cho email chính hiện tại của provider facebook này đã được đổi thành cuonglm2@gmail.com
-20/07/2025:
-Thinking?: Thấy nửa vời quá => làm luôn toàn hệ thống luôn cho đỡ mệt?, kệ tính sau
-1. catalog
+Nếu như sau này mà facebook đổi email chính (cuonglm1@gmail.com => cuonglm2@gmail.com) => thì vẫn còn provideruserid của provider đó => vẫn đăng nhập vào user local cũ đấy và email thì vẫn là email được tạo đầu tiên (cuonglm1@gmail.com) dù cho email chính hiện tại của provider facebook này đã được đổi thành cuonglm2@gmail.com  
+20/07/2025:  
+Thinking?: Thấy nửa vời quá => làm luôn toàn hệ thống luôn cho đỡ mệt?, kệ tính sau  
+1. catalog  
 Chứa các khái niệm liên quan đến sản phẩm (product), phân loại (category), thuộc tính (attribute)...
-🚧 product
+🚧 product  
 Product: sản phẩm chung, không có số lượng
 ProductVariant: mỗi variant có tổ hợp ProductAttributeValue, có quantity, sku, price, v.v.
 ProductOption: (có thể đồng nghĩa với Attribute nếu dùng như Shopee)
 ProductAttributeValue: cặp (attribute + option) dùng cho 1 variant
-ProductImage, ProductMedia...
-🚧 attribute
+ProductImage, ProductMedia...  
+🚧 attribute  
 Attribute: thuộc tính (VD: Màu sắc, Kích thước)
 AttributeOption: giá trị cho thuộc tính (Đỏ, Đen, Trắng,...)
 AttributeScope: GLOBAL / SHOP
 AttributeGroup: tập các attribute, dùng cho 1 loại sản phẩm
-AttributeGroupAttribute: mapping table giữa group và attribute
-🚧 category
+AttributeGroupAttribute: mapping table giữa group và attribute  
+🚧 category  
 Category: ngành hàng phân cấp
 Có thể global, shop không được tạo
-Sử dụng để điều hướng và lọc
-🚧 collection
-Collection: shop tự tạo, gán list sản phẩm, phẳng (không có collection con)
-Giao diện landing page giống Shopee: “Hàng Mới Về”, “Sale Cuối Tuần”
-2. shop
+Sử dụng để điều hướng và lọc  
+🚧 collection  
+Collection: của shop tự tạo, gán list sản phẩm, phẳng (không có collection con)
+Giao diện landing page giống Shopee: “Hàng Mới Về”, “Sale Cuối Tuần”  
+2. shop  
 Shop: thực thể đại diện 1 cửa hàng
 User có 1 Shop (hiện tại 1:1, sau này có thể mở rộng)
-Shop có thể tạo Collection, Attribute (scope=SHOP), brand local...
-3. brand
+Shop có thể tạo Collection, Attribute (scope=SHOP), brand local...  
+3. brand  
 Brand: thực thể riêng
 Có scope là GLOBAL hoặc SHOP
 Phải gửi yêu cầu để admin duyệt thành global
-Gắn vào Product
-4. admin
+Gắn vào Product  
+4. admin  
 Tùy lựa chọn:
 Cách 1: Có 1 feature riêng admin (tốt khi muốn gom UI/API riêng)
-Cách 2: Mỗi feature đều có AdminController riêng trong feature đó (tốt khi dùng cùng logic như user nhưng khác quyền)
+Cách 2: Mỗi feature đều có AdminController riêng trong feature đó (tốt khi dùng cùng logic như user nhưng khác quyền)  
+21/07/2025:  
+Category thì sẽ hướng đến dùng Materizlized Path (nhưng là mở rộng của Parent-Child (Adjacency)) để lưu nested  
 
-21/07/2025:
-Category thì sẽ hướng đến dùng Materizlized Path (nhưng là mở rộng của Parent-Child (Adjacency)) để lưu nested
+### 📅 25/07/2025  
+**TODO:** 🚧 Shop (và các thực thể liên quan: Collection, Brand)
+---
+### 📦 Address & Location Design
+#### 🔹 Location  
+- Chứa: `province`, `district`, `ward`, `addressLine`  
+- Dùng chung cho: `UserAddress`, `ShopAddress`, `Warehouse`, v.v.  
+- Luôn tạo mới khi user thêm địa chỉ (snapshot độc lập)
+- Location có thể mở rộng: latitude, longitude, placeId, formattedAddress  
+- Hỗ trợ Google Maps hoặc các hệ thống map bên ngoài  
+- Phù hợp với các use-case như định vị, tìm gần, chọn từ bản đồ  
+#### 🔹 UserAddress  
+- Gồm: `user`, `location`, `fullName`, `phone`, `note`, `type`, `isDefault`  
+- Cá nhân hóa cho user, liên kết với `Location`
+#### 🔹 AddressType  
+- Enum định nghĩa ở từng feature (`user`, `shop`) nếu cần  
+- Không nên để trong `Location` vì mang tính sử dụng chứ không phải địa lý
+#### 🔹 Ưu điểm cấu trúc này  
+- Độc lập giữa data địa lý & metadata  
+- Dễ tái sử dụng, dễ mở rộng (`shop`, `return`, `pickup`,...)  
+- Phù hợp **modular monolith**, sẵn sàng tách **microservice**
+---

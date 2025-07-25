@@ -1,6 +1,5 @@
 package com.cuonglm.ecommerce.backend.user.entity;
 
-import com.cuonglm.ecommerce.backend.address.Address;
 import com.cuonglm.ecommerce.backend.core.identity.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.Gender;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
@@ -74,7 +73,7 @@ public class User {
     private Set<UserRole> roles;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Address> addresses;
+    private List<UserAddress> addresses;
 
 
     @Column(unique = true)
@@ -155,7 +154,7 @@ public class User {
         return roles;
     }
 
-    public List<Address> getAddresses() {
+    public List<UserAddress> getAddresses() {
         return addresses;
     }
 
@@ -226,7 +225,7 @@ public class User {
         this.roles = roles;
     }
 
-    public void setAddresses(List<Address> addresses) {
+    public void setAddresses(List<UserAddress> addresses) {
         this.addresses = addresses;
     }
 
