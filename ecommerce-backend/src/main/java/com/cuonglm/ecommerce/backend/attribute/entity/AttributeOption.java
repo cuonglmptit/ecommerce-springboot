@@ -36,4 +36,26 @@ public class AttributeOption {
     @ManyToOne
     @JoinColumn(name = "shop_id")
     private Shop shop; // null nếu GLOBAL
+
+    //<editor-fold desc="Getters">
+    public UUID getId() {
+        return id;
+    }
+
+    public Attribute getAttribute() {
+        return attribute;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public AttributeScope getScope() {
+        return scope;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+    //</editor-fold>
 }

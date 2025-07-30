@@ -56,7 +56,7 @@
 Thinking?: Thấy nửa vời quá => làm luôn toàn hệ thống luôn cho đỡ mệt?, kệ tính sau  
 ---
 
-### **20/07/2025 – Catalog Design **
+### **20/07/2025 – Catalog Design**
 #### 1️⃣ 🚧**Product**  
 - `Product`: sản phẩm chung, không có số lượng  
 - `ProductVariant`: tổ hợp của `ProductAttributeValue`, có quantity, sku, price  
