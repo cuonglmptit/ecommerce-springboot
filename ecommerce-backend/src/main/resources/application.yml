@@ -1,0 +1,109 @@
+# application.yml
+
+spring:
+  application:
+    name: ecommerce-backend
+  # Connect database Postgres
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cuonglmstore_ecommerce}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Cuongdemo123}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Format + highlight SQL
+        format_sql: true
+        highlight_sql: true
+        generate_statistics: true
+  # Configure Resource Server to validate JWT tokens
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI:http://localhost:8080}
+      client:
+        registration:
+          # Google OpenID Connect configuration (Still OAuth2 under the hood, but Google fully supports OIDC)
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+            # redirect-uri-template is deprecated, use redirect-uri instead
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          # GitHub OAuth2 configuration (as GitHub does not support OIDC)
+          github:
+            #            client-id: ${GITHUB_CLIENT_ID:Ov23lib4OLvibI8C2JYD}
+            #            client-secret: ${GITHUB_CLIENT_SECRET:8d94c0cf754c4147fbe6972097c06d1782d51808}
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - read:user
+              - user:email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+  # Configure mail server
+  mail:
+    # SMTP config
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME} # environment variable
+    password: ${MAIL_APP_PASSWORD} # environment variable
+    protocol: smtp
+    # Properties
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+third-party:
+  github:
+    # URL to fetch user emails from GitHub API
+    emails-url: ${GITHUB_EMAILS_URL:https://api.github.com/user/emails}
+
+# Log SQL in logger
+logging:
+  level:
+    org:
+      hibernate:
+        stat: DEBUG
+        SQL: DEBUG
+        type: TRACE
+        orm:
+          jdbc:
+            bind: TRACE
+      springframework:
+        security: DEBUG
+        security.web: DEBUG
+        security.oauth2: DEBUG
+        security.oauth2.server.authorization: DEBUG
+
+# Create endpoint of spring-boot-starter-actuator (/actuator/shutdown)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    shutdown:
+      enabled: true
+# Note: 'endpoints.shutdown.enabled=true' is deprecated and replaced by the management block above.
+
+# Configure keyset pair for JWT signing in AuthServer
+auth:
+  jwt:
+    rsa-private-key: ${AUTH_JWT_RSA_PRIVATE_KEY:classpath:certs/private.pem}
+    rsa-public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:certs/public.pem}
+
+server:
+  port: 8080
