@@ -4,7 +4,7 @@ import com.cuonglm.ecommerce.backend.user.enums.OAuth2Provider;
 import jakarta.persistence.*;
 
 /**
- * UserOAuth2 – Thực thể đăng nhập theo oauth.
+ * UserOAuth2Account – Thực thể đăng nhập theo oauth.
  *
  * <p>
  * Lớp liên kết @ManyToOne với User để thực hiện đăng nhập bằng bên thứ 3.
@@ -14,8 +14,16 @@ import jakarta.persistence.*;
  * @since Sunday, 20 July 2025
  */
 @Entity
-@Table(name = "user_oauth2")
-public class UserOAuth2 {
+@Table(
+        name = "user_oauth2_account",
+        uniqueConstraints = {
+                // Mỗi cặp (provider, providerUserId) là duy nhất và chỉ được liên kết với một User
+                @UniqueConstraint(
+                        columnNames = {"provider", "provider_user_id"}
+                )
+        }
+)
+public class UserOAuth2Account {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -49,7 +57,6 @@ public class UserOAuth2 {
     //</editor-fold>
 
     //<editor-fold desc="Setters">
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -65,6 +72,5 @@ public class UserOAuth2 {
     public void setUser(User user) {
         this.user = user;
     }
-
     //</editor-fold>
 }

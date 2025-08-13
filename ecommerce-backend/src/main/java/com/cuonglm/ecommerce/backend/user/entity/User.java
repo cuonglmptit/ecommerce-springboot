@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.user.entity;
 
-import com.cuonglm.ecommerce.backend.core.identity.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.Gender;
+import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -11,12 +11,14 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 /**
  * User – Người dùng hệ thống.
  *
@@ -36,6 +38,7 @@ import java.util.Set;
                 @Index(name = "idx_user_phone", columnList = "phone_number")
         }
 )
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -54,13 +57,22 @@ public class User {
      * Trường mật khẩu dạng hash.
      * </p>
      * <p>
-     * nullable = true: Để tối ưu UX thì nếu user đăng nhập bằng oauth2 thì không cần mật khẩu.
-     * Chỉ khi nào user có thao tác thêm sđt hoặc thay đổi email thì sẽ cần tạo mật khẩu.
+     * Để tối ưu UX thì nếu user đăng nhập bằng oauth2 thì không cần mật khẩu, tuy nhiên logic sẽ tự sinh mật khẩu ngẫu nhiên
+     * bằng UUID.randomUUID() để lưu vào trường này.
+     * <br>
+     * Chỉ khi nào user có thao tác thêm sđt hoặc thay đổi email thì sẽ cần tạo mật khẩu (vì lúc đó user có thể đăng nhập trực tiếp).
      * </p>
      */
-    @Column(nullable = true, length = 128)
-    @NotNull
+    @Column(nullable = false, length = 128)
     private String passwordHash;
+
+    /**
+     * Trạng thái mật khẩu cục bộ: true nếu user đã tạo mật khẩu để đăng nhập Form Login.
+     * <br>
+     * Mặc định: false khi tạo qua OAuth2.
+     */
+    @Column(nullable = false)
+    private boolean isLocalPasswordSet = false;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
@@ -70,7 +82,7 @@ public class User {
     )
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
-    private Set<UserRole> roles;
+    private Set<UserRole> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserAddress> addresses;
@@ -79,8 +91,7 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @Column(unique = true, nullable = false)
-    @NotNull
+    @Column(unique = true, nullable = true)
     @Size(min = 10, max = 15)
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Số điện thoại không hợp lệ")
     private String phoneNumber;
@@ -99,17 +110,19 @@ public class User {
     //07/07/25Phần này chưa xong, sẽ làm thêm audit chuẩn hơn (đang xem xét 2 cách là audit bằng extend/interface hoặc theo spring)
     //08/07/25 thêm tạm, sau này hiểu về spring security và audit thì thực hiện thêm
     @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", updatable = false)
-    private User createdBy;
+    private Long createdById;
+
     @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modified_by_id")
-    private User modifiedBy;
+    private Long modifiedById;
+
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant modifiedAt;
 
     @Column(nullable = false)
@@ -125,17 +138,56 @@ public class User {
      * Các tài khoản đăng nhập bằng bên thứ 3 (OAuth2)
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserOAuth2> oauthAccounts = new ArrayList<>();
+    private Set<UserOAuth2Account> oauthAccounts = new HashSet<>();
 
-    public void addOAuthAccount(UserOAuth2 account) {
-        oauthAccounts.add(account);
+
+    //<editor-fold desc="Helper Methods">
+
+    /**
+     * Thêm một liên kết
+     *
+     * @param account
+     */
+    public void addOAuthAccount(UserOAuth2Account account) {
+        if (this.oauthAccounts == null) {
+            this.oauthAccounts = new HashSet<>();
+        }
+        this.oauthAccounts.add(account);
         account.setUser(this);
     }
 
-    public void removeOAuthAccount(UserOAuth2 account) {
-        oauthAccounts.remove(account);
-        account.setUser(null);
+    public void removeOAuthAccount(UserOAuth2Account account) {
+        if (this.oauthAccounts != null) {
+            this.oauthAccounts.remove(account);
+            // 2. Xử lý mối quan hệ hai chiều (Bidirectional relationship)
+            // Việc set account.setUser(null) là cần thiết để ngắt liên kết khóa ngoại.
+            account.setUser(null);
+        }
     }
+
+    /**
+     * Thêm một vai trò mới vào danh sách.
+     *
+     * @param role Vai trò cần thêm.
+     */
+    public void addRole(UserRole role) {
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
+        this.roles.add(role);
+    }
+
+    /**
+     * Loại bỏ một vai trò cụ thể.
+     *
+     * @param role Vai trò cần loại bỏ.
+     */
+    public void removeRole(UserRole role) {
+        if (this.roles != null) {
+            this.roles.remove(role);
+        }
+    }
+    //</editor-fold>
 
     //<editor-fold desc="Getters">
     public Long getId() {
@@ -178,16 +230,16 @@ public class User {
         return dateOfBirth;
     }
 
-    public User getCreatedBy() {
-        return createdBy;
+    public Long getCreatedBy() {
+        return createdById;
     }
 
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public User getModifiedBy() {
-        return modifiedBy;
+    public Long getModifiedBy() {
+        return modifiedById;
     }
 
     public Instant getModifiedAt() {
@@ -204,6 +256,10 @@ public class User {
 
     public boolean isEmailVerified() {
         return isEmailVerified;
+    }
+
+    public boolean isLocalPasswordSet() {
+        return isLocalPasswordSet;
     }
 
     //</editor-fold>
@@ -259,6 +315,15 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public void setLocalPasswordSet(boolean localPasswordSet) {
+        isLocalPasswordSet = localPasswordSet;
+    }
+
+    void lol() {
+        // This method is intentionally left blank.
+        // It can be used for debugging or testing purposes.
     }
     //</editor-fold>
 }
