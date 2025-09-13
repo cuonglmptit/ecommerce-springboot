@@ -136,7 +136,7 @@ public class OtpServiceImpl implements OtpService {
         // 4. Gửi token (sử dụng Raw OTP)
         sendOtp(savedToken, result.rawOtpCode()); // UPDATED CALL: Pass raw OTP
 
-        System.out.println("DEBUG: Generated OTP: [HASHED] - Raw OTP sent to user."); // No longer log raw OTP
+        System.out.println("DEBUG: Generated OTP: [" + result.rawOtpCode() + "] - Raw OTP sent to user " + target + " Hashed OTP: " + savedToken.getOtpHash() + "."); // No longer log raw OTP
         return savedToken;
     }
 
