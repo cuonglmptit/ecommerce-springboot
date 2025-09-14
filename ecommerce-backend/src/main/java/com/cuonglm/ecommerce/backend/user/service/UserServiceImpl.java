@@ -8,7 +8,9 @@ import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.entity.UserOAuth2Account;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
+import com.cuonglm.ecommerce.backend.user.repository.UserOAuth2AccountRepository;
 import com.cuonglm.ecommerce.backend.user.repository.UserRepository;
+import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,11 +33,142 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserOAuth2AccountRepository userOAuth2AccountRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, UserOAuth2AccountRepository userOAuth2AccountRepository) {
         this.userRepository = userRepository;
+        this.userOAuth2AccountRepository = userOAuth2AccountRepository;
     }
 
+    //<editor-fold desc="Tạo người dùng qua Oauth2">
+    @Override
+    @Transactional
+    public Optional<UserSecurityAndProfileDTO> findOrCreateUserByOAuth2(
+            UserOAuth2Info userOauth2Info, String initialRandomPasswordHash) {
+        // 1. PRIMARY CHECK: Tìm kiếm UserOAuth2Account liên kết với User bằng Provider và ProviderUserId
+        Optional<UserOAuth2Account> existingOAuth2Account = userOAuth2AccountRepository
+                .findByProviderAndProviderUserId(userOauth2Info.getProvider(), userOauth2Info.getProviderUserId());
+        // Nếu như User đã từng đăng nhập bằng Provider này thì trả về thông tin User
+        if (existingOAuth2Account.isPresent()) {
+            return Optional.of(new UserSecurityAndProfileDTO(existingOAuth2Account.get().getUser()));
+        }
+
+        // 2. SECONDARY CHECK: Nếu chưa có liên kết, tìm User Local/tồn tại bằng Email
+        Optional<User> existingUserByEmail = userRepository.findByEmail(userOauth2Info.getEmail());
+        if (existingUserByEmail.isPresent()) {
+            User userToLink = existingUserByEmail.get();
+            // Chỉ liên kết nếu User Local đã xác minh Email để ngăn chiếm đoạt tài khoản
+            if (userToLink.isEmailVerified()) {
+                // Tìm thấy User tồn tại và đã xác minh email thì liên kết
+                linkOAuth2Account(userToLink, userOauth2Info);
+                return Optional.of(new UserSecurityAndProfileDTO(userToLink));
+            }
+            // Nếu chưa xác minh, logic sẽ bỏ qua khối if này và chuyển xuống bước 3 (tạo mới)
+            // để bảo vệ tài khoản Local.
+        }
+
+        // 3. CREATE NEW: Nếu không tìm thấy hoặc tài khoản local chưa xác minh, tạo mới hoàn toàn
+        User newUser = createNewUserFromOAuth2(userOauth2Info, initialRandomPasswordHash);
+        linkOAuth2Account(newUser, userOauth2Info);
+        return Optional.of(new UserSecurityAndProfileDTO(newUser));
+    }
+
+    // Helper Methods
+
+    /**
+     * Tạo User mới từ thông tin đăng nhập qua Oauth2
+     *
+     * @param info         Thông tin kiểu {@link UserOAuth2Info} về người dùng
+     * @param passwordHash Mật khẩu ngẫu nhiên đã được hash để gán cho User mới đăng ký qua OAuth2
+     * @return Thực thể {@link User} mới đã được lưu vào Database (nhưng vẫn trong Transaction)
+     */
+    private User createNewUserFromOAuth2(UserOAuth2Info info, String passwordHash) {
+        User user = new User();
+        // Giả định username là email (có thể cần logic tạo username ngẫu nhiên nếu email là null)
+        user.setUsername(generateUniqueUsername(info));
+        user.setEmail(info.getEmail());
+        user.setFullName(info.getFullName());
+        user.setAvatarUrl(info.getAvatarUrl());
+
+        // Hashing và Trạng thái Mật khẩu
+        user.setPasswordHash(passwordHash);
+        user.setLocalPasswordSet(false);
+
+        // Cấu hình Trạng thái và Xác minh
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEmailVerified(true); // Email được coi là đã xác minh bởi nhà cung cấp
+
+        // Gán role mặc định là Customer
+        user.addRole(UserRole.CUSTOMER);
+
+        // Trả về User đã được tạo mới
+        return userRepository.save(user);
+    }
+
+    /**
+     * Tạo {@link UserOAuth2Account} và liên kết với một {@link User} thông qua thông tin của {@link UserOAuth2Info}.
+     *
+     * @param user Người dùng muốn liên kết với oauth2
+     * @param info Thông tin oauth2 của người dùng
+     */
+    private void linkOAuth2Account(User user, UserOAuth2Info info) {
+        UserOAuth2Account newAccount = new UserOAuth2Account();
+        newAccount.setProvider(info.getProvider());
+        newAccount.setProviderUserId(info.getProviderUserId());
+        user.addOAuthAccount(newAccount); // Dùng Helper method trong User entity
+        // Không cần userOauth2Repository.save(newAccount); nếu User đã có cascade
+        // Tuy nhiên cứ gọi cho chắc ăn? Mà có cần ko nhỉ, kệ ko cần gọi cho chuyên nghiệp
+//        userOAuth2AccountRepository.save(newAccount);
+    }
+
+    /**
+     * Tạo username hợp lệ và duy nhất.
+     * Sử dụng tiền tố email/fullname, sau đó kiểm tra tính duy nhất bằng UserRepository.
+     *
+     * @param info Thông tin của người dùng kiểu {@link UserOAuth2Info} để tạo ra Username duy nhất
+     * @return Username chưa được sử dụng trong Database
+     */
+    private String generateUniqueUsername(UserOAuth2Info info) {
+        String baseUsername;
+
+        // Ưu tiên: 1. Tiền tố Email -> 2. Tên đầy đủ (FullName) -> 3. Fallback ID
+        if (info.getEmail() != null && !info.getEmail().isBlank()) {
+            // Lấy tiền tố email và loại bỏ ký tự không hợp lệ (giữ lại a-zA-Z0-9_.)
+            baseUsername = info.getEmail().split("@")[0].replaceAll("[^a-zA-Z0-9_.]", "");
+        } else if (info.getFullName() != null && !info.getFullName().isBlank()) {
+            // Lấy FullName, chuyển thành slug và loại bỏ ký tự không hợp lệ
+            baseUsername = info.getFullName().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_.]", "");
+        } else {
+            // Fallback: provider_id cuối (chỉ 4 ký tự cuối)
+            String providerIdSuffix = info.getProviderUserId().substring(Math.max(0, info.getProviderUserId().length() - 4));
+            baseUsername = info.getProvider().name().toLowerCase() + "_" + providerIdSuffix;
+        }
+
+        // Đảm bảo username không rỗng sau khi chuẩn hóa
+        if (baseUsername.isBlank()) {
+            baseUsername = info.getProvider().name().toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 6);
+        }
+
+        // Xử lý tính duy nhất (Thêm số đếm nếu trùng)
+        String finalUsername = baseUsername;
+        int counter = 0;
+
+        // Vòng lặp kiểm tra tính duy nhất
+        while (userRepository.existsByUsername(finalUsername)) {
+            counter++;
+            finalUsername = baseUsername + "_" + counter;
+            System.out.println("Số lần thử username có trùng hay không: " + counter);
+            // Giới hạn vòng lặp để tránh lỗi vô hạn (chỉ là biện pháp đề phòng)
+            if (counter > 100) {
+                finalUsername = info.getProvider().name().toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 8);
+                break;
+            }
+        }
+
+        return finalUsername;
+    }
+
+    //</editor-fold>
     //<editor-fold desc="Tạo người dùng qua Form Login">
     @Override
     @Transactional
@@ -106,6 +239,8 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
+
+
 
 
     @Override

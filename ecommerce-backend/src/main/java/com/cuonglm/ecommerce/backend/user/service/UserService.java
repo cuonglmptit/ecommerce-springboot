@@ -5,6 +5,7 @@ import com.cuonglm.ecommerce.backend.user.dto.UserCreationDTO;
 import com.cuonglm.ecommerce.backend.user.dto.UserCreationResultDTO;
 import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.entity.User;
+import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,16 @@ public interface UserService {
     Optional<UserSecurityAndProfileDTO> findSecurityDetailsByUsernameOrEmail(String usernameOrEmail);
 
     /**
+     * Tìm kiếm hoặc tạo mới User dựa trên thông tin OAuth2. Nếu không có, tạo User mới và link UserOAuth2 Account.
+     *
+     * @param userOauth2Info            Thông tin OAuth2 của người dùng.
+     * @param initialRandomPasswordHash Mật khẩu ngẫu nhiên đã được hash để gán cho User mới đăng ký qua OAuth2.
+     * @return Optional chứa UserSecurityAndProfileDTO nếu tìm thấy hoặc tạo mới thành công, ngược lại là Optional.empty().
+     */
+    Optional<UserSecurityAndProfileDTO> findOrCreateUserByOAuth2(
+            UserOAuth2Info userOauth2Info, String initialRandomPasswordHash);
+
+    /**
      * Tìm người dùng bằng Email.
      *
      * @param email Email cần tìm.
@@ -55,6 +66,8 @@ public interface UserService {
      */
     Optional<User> findUserByPhoneNumber(String phoneNumber);
 
+
+
     /**
      * Tìm danh sách User theo Username hoặc Email.
      * <p>
@@ -68,6 +81,7 @@ public interface UserService {
      * @return List chứa UserConflictInfoDTO nếu tìm thấy, ngược lại là List rỗng
      */
     List<UserConflictInfoDTO> findConflictUsers(String username, String email);
+
 
     List<User> getAllUsers();
 
