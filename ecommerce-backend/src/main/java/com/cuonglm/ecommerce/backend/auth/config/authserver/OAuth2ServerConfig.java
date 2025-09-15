@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.config.authserver;
 
+import com.cuonglm.ecommerce.backend.auth.service.oauth2.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -22,6 +23,11 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
  */
 @Configuration
 public class OAuth2ServerConfig {
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+    public OAuth2ServerConfig(CustomOAuth2UserService customOAuth2UserService) {
+        this.customOAuth2UserService = customOAuth2UserService;
+    }
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -70,6 +76,15 @@ public class OAuth2ServerConfig {
                 .securityMatcher(AUTH_SECURITY_MATCHERS)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_SECURITY_MATCHERS).permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        // Cấu hình UserInfo Endpoint để sử dụng CustomOAuth2UserService và CustomOidcUserService
+                        // Còn các IdP chỉ hỗ trợ OAuth2 (như Facebook, GitHub) sẽ dùng CustomOAuth2UserService
+                        // Khi đăng nhập mà full OIDC (như Google) sẽ dùng CustomOidcUserService
+                        .userInfoEndpoint(
+                                userInfo -> userInfo
+                                        .userService(customOAuth2UserService)
+                        )
                 )
                 .formLogin(Customizer.withDefaults())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(AUTH_SECURITY_MATCHERS));
