@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.auth.config.authserver;
 
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.CustomOAuth2UserService;
+import com.cuonglm.ecommerce.backend.auth.service.oauth2.CustomOidcUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -24,9 +25,11 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 @Configuration
 public class OAuth2ServerConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
 
-    public OAuth2ServerConfig(CustomOAuth2UserService customOAuth2UserService) {
+    public OAuth2ServerConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
     }
 
     @Bean
@@ -83,6 +86,7 @@ public class OAuth2ServerConfig {
                         // Khi đăng nhập mà full OIDC (như Google) sẽ dùng CustomOidcUserService
                         .userInfoEndpoint(
                                 userInfo -> userInfo
+                                        .oidcUserService(customOidcUserService)
                                         .userService(customOAuth2UserService)
                         )
                 )
