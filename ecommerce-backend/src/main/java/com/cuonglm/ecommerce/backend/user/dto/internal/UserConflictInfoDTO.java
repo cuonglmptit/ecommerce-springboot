@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.user.dto;
+package com.cuonglm.ecommerce.backend.user.dto.internal;
 
 /**
  * UserConflictInfoDTO – DTO chỉ chứa các thông tin cần thiết để kiểm tra xung đột

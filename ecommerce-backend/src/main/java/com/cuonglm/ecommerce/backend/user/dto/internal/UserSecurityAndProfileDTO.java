@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.user.dto;
+package com.cuonglm.ecommerce.backend.user.dto.internal;
 
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;

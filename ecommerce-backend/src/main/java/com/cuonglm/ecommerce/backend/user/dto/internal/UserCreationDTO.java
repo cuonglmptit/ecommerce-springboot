@@ -1,11 +1,7 @@
-package com.cuonglm.ecommerce.backend.user.dto;
+package com.cuonglm.ecommerce.backend.user.dto.internal;
 
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 /**
  * UserCreationDTO – Lớp nhận và chuyển request User giữa client <-> Auth Controller <-> User Service.
