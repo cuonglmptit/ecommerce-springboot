@@ -13,7 +13,7 @@ import java.util.Map;
  * @author cuonglmptit
  * @since Wednesday, 12 November 2025
  */
-public class ValidationErrorsException extends RuntimeException {
+public class ValidationErrorsException extends BaseRuntimeException {
     private final Map<String, Object> errors;
 
     public ValidationErrorsException(String message, Map<String, Object> errors) {
