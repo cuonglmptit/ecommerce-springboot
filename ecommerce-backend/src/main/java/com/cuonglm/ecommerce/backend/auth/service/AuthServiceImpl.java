@@ -1,17 +1,17 @@
 package com.cuonglm.ecommerce.backend.auth.service;
 
-import com.cuonglm.ecommerce.backend.auth.dto.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.otp.VerifyOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.UserRegisterRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpChannel;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;
 import com.cuonglm.ecommerce.backend.auth.service.otp.OtpService;
 import com.cuonglm.ecommerce.backend.core.exception.ValidationErrorsException;
-import com.cuonglm.ecommerce.backend.user.dto.UserConflictInfoDTO;
-import com.cuonglm.ecommerce.backend.user.dto.UserCreationDTO;
-import com.cuonglm.ecommerce.backend.user.dto.UserCreationResultDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserConflictInfoDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserCreationDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserCreationResultDTO;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import com.cuonglm.ecommerce.backend.user.service.UserService;

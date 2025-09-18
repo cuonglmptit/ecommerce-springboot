@@ -1,10 +1,10 @@
 package com.cuonglm.ecommerce.backend.auth.service;
 
-import com.cuonglm.ecommerce.backend.auth.dto.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.UserRegisterRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
-import com.cuonglm.ecommerce.backend.user.dto.UserCreationResultDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserCreationResultDTO;
 
 /**
  * AuthService – Interface xử lý các nghiệp vụ xác thực chính.

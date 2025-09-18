@@ -36,6 +36,9 @@ public class Attribute {
     @Enumerated(EnumType.STRING)
     private AttributeScope scope = AttributeScope.GLOBAL;
 
+    @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AttributeOption> attributeOptions = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "shop_id")
     private Shop shop; // null nếu GLOBAL

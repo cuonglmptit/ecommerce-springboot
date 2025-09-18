@@ -26,7 +26,6 @@ public class ShopAddress {
     private Shop shop;
 
     @OneToOne(optional = false)
-    @MapsId
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 

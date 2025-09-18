@@ -3,7 +3,7 @@ package com.cuonglm.ecommerce.backend.auth.service.oauth2;
 import com.cuonglm.ecommerce.backend.auth.model.CustomOidcPrincipal;
 import com.cuonglm.ecommerce.backend.auth.service.common.AuthUserHandler;
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.google.GoogleUserOAuth2Info;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.enums.OAuth2Provider;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
 import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;

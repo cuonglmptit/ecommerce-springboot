@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.auth.dto.otp;
+package com.cuonglm.ecommerce.backend.auth.dto.external.otp;
 
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;
 import jakarta.validation.constraints.NotBlank;

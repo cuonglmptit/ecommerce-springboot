@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.auth.model;
 
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.CustomOAuth2UserService;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Map;

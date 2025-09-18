@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.category.entity.enums;
+package com.cuonglm.ecommerce.backend.category.enums;
 
 /**
  * FilterType – Mô_tả_ngắn_về_lớp.

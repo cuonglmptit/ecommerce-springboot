@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.service.otp;
 
-import com.cuonglm.ecommerce.backend.auth.dto.otp.VerifyOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequestDTO;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpChannel;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;

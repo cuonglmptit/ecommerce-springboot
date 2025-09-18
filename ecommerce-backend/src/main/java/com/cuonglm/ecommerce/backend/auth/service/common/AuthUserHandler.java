@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.service.common;
 
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;

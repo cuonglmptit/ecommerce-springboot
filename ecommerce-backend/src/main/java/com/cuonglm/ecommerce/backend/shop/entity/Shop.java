@@ -17,7 +17,7 @@ import java.util.List;
  * @since Sunday, 20 July 2025
  */
 @Entity
-@Table(name = "shop")
+@Table(name = "shops")
 public class Shop {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,4 +39,52 @@ public class Shop {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Product> products;
+
+    //<editor-fold desc="Getters/Setters">
+
+    public Long getId() {
+        return id;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public ShopAddress getAddress() {
+        return address;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setAddress(ShopAddress address) {
+        this.address = address;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+    //</editor-fold>
 }

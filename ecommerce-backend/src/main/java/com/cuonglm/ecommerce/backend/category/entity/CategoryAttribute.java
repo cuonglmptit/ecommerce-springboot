@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.category.entity;
 
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
-import com.cuonglm.ecommerce.backend.category.entity.enums.FilterType;
+import com.cuonglm.ecommerce.backend.category.enums.FilterType;
 import jakarta.persistence.*;
 
 /**
@@ -14,6 +14,14 @@ import jakarta.persistence.*;
  * @author cuonglmptit
  * @since Tuesday, 29 July 2025
  */
+@Entity
+@Table(
+        name = "category_attribute",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"category_id", "attribute_id"})
+        }
+)
+
 public class CategoryAttribute {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

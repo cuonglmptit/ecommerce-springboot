@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.auth.model;
 
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.CustomOidcUserService;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;

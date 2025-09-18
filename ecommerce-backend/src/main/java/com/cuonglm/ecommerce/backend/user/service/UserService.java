@@ -1,9 +1,6 @@
 package com.cuonglm.ecommerce.backend.user.service;
 
-import com.cuonglm.ecommerce.backend.user.dto.UserConflictInfoDTO;
-import com.cuonglm.ecommerce.backend.user.dto.UserCreationDTO;
-import com.cuonglm.ecommerce.backend.user.dto.UserCreationResultDTO;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.*;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;
 

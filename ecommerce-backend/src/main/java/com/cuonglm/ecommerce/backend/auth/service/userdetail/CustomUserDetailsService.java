@@ -3,7 +3,7 @@ package com.cuonglm.ecommerce.backend.auth.service.userdetail;
 
 import com.cuonglm.ecommerce.backend.auth.model.LocalUserPrincipal;
 import com.cuonglm.ecommerce.backend.auth.service.common.AuthUserHandler;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

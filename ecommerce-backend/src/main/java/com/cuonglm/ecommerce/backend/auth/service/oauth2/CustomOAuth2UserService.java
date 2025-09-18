@@ -4,7 +4,7 @@ import com.cuonglm.ecommerce.backend.auth.model.CustomOAuth2Principal;
 import com.cuonglm.ecommerce.backend.auth.service.common.AuthUserHandler;
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.github.GitHubEmailFetcher;
 import com.cuonglm.ecommerce.backend.auth.service.oauth2.github.GithubUserOAuth2Info;
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.enums.OAuth2Provider;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;

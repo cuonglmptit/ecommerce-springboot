@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.model;
 
-import com.cuonglm.ecommerce.backend.user.dto.UserSecurityAndProfileDTO;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserSecurityAndProfileDTO;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 

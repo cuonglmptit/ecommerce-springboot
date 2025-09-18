@@ -75,4 +75,108 @@ public class Location {
 
     @LastModifiedDate
     private Instant modifiedAt;
+
+    //<editor-fold desc="Getters/Setters">
+
+    public Long getId() {
+        return id;
+    }
+
+    public Province getProvince() {
+        return province;
+    }
+
+    public District getDistrict() {
+        return district;
+    }
+
+    public Ward getWard() {
+        return ward;
+    }
+
+    public String getAddressLine() {
+        return addressLine;
+    }
+
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public String getPlaceId() {
+        return placeId;
+    }
+
+    public String getFormattedAddress() {
+        return formattedAddress;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public User getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public Instant getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setProvince(Province province) {
+        this.province = province;
+    }
+
+    public void setDistrict(District district) {
+        this.district = district;
+    }
+
+    public void setWard(Ward ward) {
+        this.ward = ward;
+    }
+
+    public void setAddressLine(String addressLine) {
+        this.addressLine = addressLine;
+    }
+
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setPlaceId(String placeId) {
+        this.placeId = placeId;
+    }
+
+    public void setFormattedAddress(String formattedAddress) {
+        this.formattedAddress = formattedAddress;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setModifiedBy(User modifiedBy) {
+        this.modifiedBy = modifiedBy;
+    }
+
+    public void setModifiedAt(Instant modifiedAt) {
+        this.modifiedAt = modifiedAt;
+    }
+
+    //</editor-fold>
 }

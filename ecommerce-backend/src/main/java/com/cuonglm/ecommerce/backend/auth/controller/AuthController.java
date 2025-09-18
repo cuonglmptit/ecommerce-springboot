@@ -1,9 +1,8 @@
 package com.cuonglm.ecommerce.backend.auth.controller;
 
-import com.cuonglm.ecommerce.backend.auth.dto.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.user.UserRegisterRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.otp.VerifyOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
 import com.cuonglm.ecommerce.backend.auth.service.AuthService;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
 import jakarta.validation.Valid;
