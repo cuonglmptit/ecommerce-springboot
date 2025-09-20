@@ -1,6 +1,8 @@
 package com.cuonglm.ecommerce.backend.user.service;
 
-
+import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
+import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
+import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.user.dto.internal.*;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.entity.UserOAuth2Account;
@@ -229,6 +231,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true) // Nên có readOnly = true cho các method get
+    public UserInfoDTO getCurrentAuthenticatedUserInfo() {
+        // 1. Gọi Core để lấy chuỗi định danh (Username/Email)
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthenticatedException("Người dùng chưa đăng nhập hoặc phiên làm việc hết hạn."));
+
+        // 2. Lấy Interface View từ DB
+        UserInfoView view = userRepository.findUserInfoById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin người dùng: " + userId));
+
+        // 3. MAPPING: Chuyển đổi từ Entity User sang Internal DTO
+        // (Bước này bị thiếu trong code cũ của bạn)
+        return new UserInfoDTO(
+                view.getId(),
+                view.getEmail(),
+                view.getStatus(),
+                view.isEmailVerified(),
+                view.isPhoneVerified(),
+                view.getRoles()
+        );
+    }
+
+    @Override
     public User updateUser(Long id, User user) {
         return null;
     }
@@ -237,8 +262,6 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
-
-
 
 
     @Override

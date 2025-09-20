@@ -64,7 +64,6 @@ public interface UserService {
     Optional<User> findUserByPhoneNumber(String phoneNumber);
 
 
-
     /**
      * Tìm danh sách User theo Username hoặc Email.
      * <p>
@@ -79,6 +78,12 @@ public interface UserService {
      */
     List<UserConflictInfoDTO> findConflictUsers(String username, String email);
 
+    /**
+     * Lấy ra người dùng đã đăng nhập.
+     *
+     * @return Thông tin người dùng đã đăng nhập.
+     */
+    UserInfoDTO getCurrentAuthenticatedUserInfo();
 
     List<User> getAllUsers();
 
