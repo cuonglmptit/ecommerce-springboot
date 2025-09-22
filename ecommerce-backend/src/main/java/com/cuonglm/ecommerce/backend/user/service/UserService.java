@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.user.service;
 
 import com.cuonglm.ecommerce.backend.user.dto.internal.*;
 import com.cuonglm.ecommerce.backend.user.entity.User;
+import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;
 
 import java.util.List;
@@ -84,6 +85,21 @@ public interface UserService {
      * @return Thông tin người dùng đã đăng nhập.
      */
     UserInfoDTO getCurrentAuthenticatedUserInfo();
+
+    /**
+     * Lấy ra thông tin người dùng theo thông tin Id
+     * @param userId Id của người dùng
+     * @return Thông tin người dùng
+     */
+    UserInfoDTO findUserInfoById(Long userId);
+
+    /**
+     * Cấp một vai trò mới cho người dùng.
+     *
+     * @param userId ID của người dùng
+     * @param role   Vai trò muốn cấp (ví dụ: UserRole.SELLER)
+     */
+    void grantRoleToUser(Long userId, UserRole role);
 
     List<User> getAllUsers();
 

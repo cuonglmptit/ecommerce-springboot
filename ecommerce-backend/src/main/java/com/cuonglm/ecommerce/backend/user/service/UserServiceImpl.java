@@ -230,6 +230,23 @@ public class UserServiceImpl implements UserService {
         return userOptional.map(UserSecurityAndProfileDTO::new);
     }
 
+    /**
+     * Helper method để ánh xạ (map) từ UserInfoView Projection sang UserInfoDTO.
+     *
+     * @param view View Projection từ UserRepository
+     * @return DTO chứa thông tin User
+     */
+    private UserInfoDTO mapToUserInfoDTO(UserInfoView view) {
+        return new UserInfoDTO(
+                view.getId(),
+                view.getEmail(),
+                view.getStatus(),
+                view.isEmailVerified(),
+                view.isPhoneVerified(),
+                view.getRoles()
+        );
+    }
+
     @Override
     @Transactional(readOnly = true) // Nên có readOnly = true cho các method get
     public UserInfoDTO getCurrentAuthenticatedUserInfo() {
@@ -243,15 +260,29 @@ public class UserServiceImpl implements UserService {
 
         // 3. MAPPING: Chuyển đổi từ Entity User sang Internal DTO
         // (Bước này bị thiếu trong code cũ của bạn)
-        return new UserInfoDTO(
-                view.getId(),
-                view.getEmail(),
-                view.getStatus(),
-                view.isEmailVerified(),
-                view.isPhoneVerified(),
-                view.getRoles()
-        );
+        return mapToUserInfoDTO(view);
     }
+
+    @Override
+    public UserInfoDTO findUserInfoById(Long userId) {
+        UserInfoView view = userRepository.findUserInfoById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin người dùng: " + userId));
+
+        return mapToUserInfoDTO(view);
+    }
+
+    @Override
+    @Transactional
+    public void grantRoleToUser(Long userId, UserRole role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User ID " + userId + " không tồn tại."));
+
+        // Thêm Role. Set sẽ tự động đảm bảo tính duy nhất
+        if (user.getRoles().add(role)) {
+            userRepository.save(user); // Chỉ cần lưu nếu có thay đổi
+        }
+    }
+
 
     @Override
     public User updateUser(Long id, User user) {
