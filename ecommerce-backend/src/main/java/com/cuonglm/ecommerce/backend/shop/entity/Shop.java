@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.shop.entity;
 
 import com.cuonglm.ecommerce.backend.product.entity.Product;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
 
@@ -39,6 +40,10 @@ public class Shop {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Product> products;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ShopStatus status = ShopStatus.ACTIVE;
 
     //<editor-fold desc="Getters/Setters">
 
@@ -84,6 +89,14 @@ public class Shop {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public ShopStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ShopStatus status) {
+        this.status = status;
     }
 
     //</editor-fold>

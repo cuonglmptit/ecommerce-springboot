@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.shop.dto.external;
 
 import com.cuonglm.ecommerce.backend.shop.entity.ShopAddress;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 
 /**
  * ShopCreationResultDTO – Mô_tả_ngắn_về_lớp.
@@ -18,6 +19,7 @@ public class ShopCreateResponseDTO {
     private String description;
     private Long ownerId; // ID của User sở hữu
     private ShopAddress address;
+    private ShopStatus status;
 
     public Long getId() {
         return id;
@@ -57,5 +59,13 @@ public class ShopCreateResponseDTO {
 
     public void setAddress(ShopAddress address) {
         this.address = address;
+    }
+
+    public ShopStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ShopStatus status) {
+        this.status = status;
     }
 }

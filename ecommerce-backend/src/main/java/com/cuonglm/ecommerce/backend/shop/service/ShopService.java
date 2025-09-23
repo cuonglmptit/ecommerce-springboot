@@ -11,4 +11,5 @@ import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateResponseDTO;
  */
 public interface ShopService {
     ShopCreateResponseDTO createShop(ShopCreateRequestDTO request);
+    void approveShop(Long shopId);
 }
