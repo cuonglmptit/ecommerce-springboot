@@ -1,6 +1,12 @@
 # application.yml
 
 spring:
+  servlet:
+    multipart:
+      # 1. Giới hạn kích thước tối đa của file
+      max-file-size: 10MB
+      # 2. Giới hạn kích thước tổng cộng của request
+      max-request-size: 10MB
   application:
     name: ecommerce-backend
   # Connect database Postgres
@@ -95,6 +101,11 @@ auth:
   jwt:
     rsa-private-key: ${AUTH_JWT_RSA_PRIVATE_KEY:classpath:certs/private.pem}
     rsa-public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:certs/public.pem}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 
 server:
   port: 8080
