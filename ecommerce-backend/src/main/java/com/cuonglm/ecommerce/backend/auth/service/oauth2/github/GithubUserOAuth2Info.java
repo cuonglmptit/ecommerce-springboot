@@ -31,7 +31,7 @@ public class GithubUserOAuth2Info extends AbstractUserOAuth2Info {
 
     @Override
     public String getEmail() {
-        // Giả sử logic lấy email (từ GitHubEmailFetcher) đã được đưa vào attributes
+        // Lấy email (từ GitHubEmailFetcher) đã được đưa vào attributes
         return getStringAttribute("email");
     }
 

@@ -97,7 +97,7 @@ public class OtpServiceImpl implements OtpService {
         }
 
         if (otpToken.getChannel() == OtpChannel.EMAIL) {
-            // Lấy tên người dùng (giả sử có thể lấy từ một User Service khác)
+            // Lấy tên người dùng
             String name = "Customer";
 
             String emailContent = emailService.buildOtpEmailContent(

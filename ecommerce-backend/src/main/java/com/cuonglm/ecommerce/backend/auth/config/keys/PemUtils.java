@@ -44,7 +44,7 @@ public class PemUtils {
                 return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             }
         }
-        // 2. Nếu không phải là đường dẫn, giả định đó là nội dung Key trực tiếp từ ENV
+        // 2. Nếu không phải là đường dẫn -> nội dung Key trực tiếp từ ENV
         return keySource;
     }
 

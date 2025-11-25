@@ -13,11 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * SecurityUtils – Mô_tả_ngắn_về_lớp.
- *
- * <p>
- * Mô_tả_chi_tiết.
- * </p>
+ * SecurityUtils – Utils dùng cho thông tin người dùng.
  *
  * @author cuonglmptit
  * @since Wednesday, 19 November 2025
