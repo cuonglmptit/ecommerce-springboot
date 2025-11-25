@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.media;
+package com.cuonglm.ecommerce.backend.media.enums;
 
 /**
  * MediaType – Loại media trong hệ thống (ảnh, video, file...).
@@ -30,5 +30,7 @@ public enum MediaType {
     /**
      * Icon/biểu tượng nhỏ
      */
-    ICON
+    ICON,
+
+    DOCUMENT
 }

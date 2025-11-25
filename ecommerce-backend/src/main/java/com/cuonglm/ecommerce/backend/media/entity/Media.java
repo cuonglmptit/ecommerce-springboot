@@ -1,12 +1,16 @@
-package com.cuonglm.ecommerce.backend.media;
+package com.cuonglm.ecommerce.backend.media.entity;
 
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
+import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
+import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
+import com.cuonglm.ecommerce.backend.media.enums.MediaType;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -25,6 +29,7 @@ import java.util.UUID;
 @Table(name = "media",
         uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "external_id"})
 )
+@EntityListeners(AuditingEntityListener.class)
 public class Media {
     /**
      * UUID với GenerationType.UUID (JPA 3.1+)
@@ -84,17 +89,98 @@ public class Media {
 
     //<editor-fold desc="Audit metadata">
     @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", updatable = false)
-    private User createdBy;
+    private Long createdById;
+
     @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modified_by_id")
-    private User modifiedBy;
+    private Long modifiedById;
+
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant modifiedAt;
+    //</editor-fold>
+
+    //<editor-fold desc="Getters/Setters">
+    public User getUploader() {
+        return uploader;
+    }
+
+    public BasicStatus getStatus() {
+        return status;
+    }
+
+    public MediaFormat getFormat() {
+        return format;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAlt() {
+        return alt;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public MediaProvider getProvider() {
+        return provider;
+    }
+
+    public MediaType getType() {
+        return type;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setUploader(User uploader) {
+        this.uploader = uploader;
+    }
+
+    public void setStatus(BasicStatus status) {
+        this.status = status;
+    }
+
+    public void setFormat(MediaFormat format) {
+        this.format = format;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setAlt(String alt) {
+        this.alt = alt;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setProvider(MediaProvider provider) {
+        this.provider = provider;
+    }
+
+    public void setType(MediaType type) {
+        this.type = type;
+    }
+
     //</editor-fold>
 }

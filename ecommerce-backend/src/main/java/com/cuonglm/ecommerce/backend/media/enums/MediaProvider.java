@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.media;
+package com.cuonglm.ecommerce.backend.media.enums;
 
 /**
  * MediaProvider – Enum xác định nguồn lưu trữ hoặc cung cấp media (ảnh, video...).
