@@ -47,6 +47,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.7.7")
 
+    // https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http5
+    implementation("com.cloudinary:cloudinary-http5:2.3.2")
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
