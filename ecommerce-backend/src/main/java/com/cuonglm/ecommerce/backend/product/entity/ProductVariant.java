@@ -1,6 +1,5 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
-import com.cuonglm.ecommerce.backend.media.Media;
 import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;

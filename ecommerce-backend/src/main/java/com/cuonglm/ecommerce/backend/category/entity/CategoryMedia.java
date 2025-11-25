@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.category.entity;
 
-import com.cuonglm.ecommerce.backend.media.Media;
+import com.cuonglm.ecommerce.backend.media.entity.Media;
 import jakarta.persistence.*;
 
 import java.util.UUID;

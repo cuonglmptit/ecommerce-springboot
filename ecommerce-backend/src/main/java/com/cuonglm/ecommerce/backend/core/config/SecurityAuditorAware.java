@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.core.config;
 
-import com.cuonglm.ecommerce.backend.auth.model.BasePrincipal;
+import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
+import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,22 +24,15 @@ public class SecurityAuditorAware implements AuditorAware<Long> {
 
     @Override
     public Optional<Long> getCurrentAuditor() {
-        // 1. Lấy đối tượng Authentication từ Spring Security Context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Optional<Long> currentUserId = SecurityUtils.getCurrentUserId();
 
-        // 2. Kiểm tra nếu không có xác thực (ví dụ: tác vụ nền) hoặc chưa được xác thực
-        if (authentication == null || !authentication.isAuthenticated()) {
+        // Nếu người dùng tồn tại, trả về ID đó.
+        // Nếu không tồn tại (Optional.empty()), trả về Optional.of(1L) làm ID mặc định (SystemAuditor).
+        if (currentUserId.isPresent()) {
+            return currentUserId;
+        } else {
+            // ID 1L là ID của người dùng hệ thống
             return Optional.of(1L);
         }
-
-        // 3. Lấy Principal (Đối tượng đại diện cho người dùng)
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof BasePrincipal user) {
-            return Optional.of(user.getId());
-        }
-
-        // Nếu như không có thì trả về ID 0
-        return Optional.of(1L);
     }
 }

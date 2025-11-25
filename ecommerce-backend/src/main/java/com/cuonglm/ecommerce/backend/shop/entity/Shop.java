@@ -4,7 +4,12 @@ import com.cuonglm.ecommerce.backend.product.entity.Product;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -44,6 +49,25 @@ public class Shop {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ShopStatus status = ShopStatus.ACTIVE;
+
+    //<editor-fold desc="Audit metadata">
+    @CreatedBy
+    @JoinColumn(name = "created_by_id", updatable = false)
+    private Long createdById;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @LastModifiedBy
+    @JoinColumn(name = "modified_by_id")
+    private Long modifiedById;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private Instant modifiedAt;
+    //</editor-fold>
+
 
     //<editor-fold desc="Getters/Setters">
 

@@ -84,7 +84,6 @@ public class UserServiceImpl implements UserService {
      */
     private User createNewUserFromOAuth2(UserOAuth2Info info, String passwordHash) {
         User user = new User();
-        // Giả định username là email (có thể cần logic tạo username ngẫu nhiên nếu email là null)
         user.setUsername(generateUniqueUsername(info));
         user.setEmail(info.getEmail());
         user.setFullName(info.getFullName());
