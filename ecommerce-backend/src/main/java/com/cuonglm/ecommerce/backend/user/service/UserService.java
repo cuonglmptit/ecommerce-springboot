@@ -91,7 +91,7 @@ public interface UserService {
      * @param userId Id của người dùng
      * @return Thông tin người dùng
      */
-    UserInfoDTO findUserInfoById(Long userId);
+    Optional<UserInfoDTO> findUserInfoById(Long userId);
 
     /**
      * Cấp một vai trò mới cho người dùng.

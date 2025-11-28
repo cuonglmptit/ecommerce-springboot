@@ -263,11 +263,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoDTO findUserInfoById(Long userId) {
-        UserInfoView view = userRepository.findUserInfoById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin người dùng: " + userId));
-
-        return mapToUserInfoDTO(view);
+    public Optional<UserInfoDTO> findUserInfoById(Long userId) {
+        return userRepository.findUserInfoById(userId)
+                .map(this::mapToUserInfoDTO);
     }
 
     @Override

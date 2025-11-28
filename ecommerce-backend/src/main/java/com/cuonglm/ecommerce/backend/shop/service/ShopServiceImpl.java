@@ -41,11 +41,9 @@ public class ShopServiceImpl implements ShopService {
 
         // 2. Xác định thông tin chủ Shop (ownerInfo)
         UserInfoDTO ownerInfo = finalOwnerId.equals(requestUser.id())
-                // Nếu Chủ Shop là chính người đang request (User tự tạo Shop) -> Tái sử dụng requestUser
                 ? requestUser
-                // Nếu Chủ Shop là người khác (Admin tạo hộ)
-                // Chỉ select khi Admin tạo Shop hộ cho User khác
-                : userService.findUserInfoById(finalOwnerId);
+                : userService.findUserInfoById(finalOwnerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin chủ sở hữu shop: " + finalOwnerId));
 
         // 3. Kiểm tra có thể tạo shop hay không
         if (shopRepository.findByOwnerId(ownerInfo.id()).isPresent()) {
