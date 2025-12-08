@@ -37,14 +37,18 @@ public class RegisteredClientJpaEntity {
     private String clientName;
 
     @NotNull
-    @Column(name = "authentication_methods", nullable = false)
+    @Column(name = "authentication_methods", nullable = false, length = 1000)
     private String clientAuthenticationMethods;
 
     @NotNull
-    @Column(name = "authorization_grant_types", nullable = false)
+    @Column(name = "authorization_grant_types", nullable = false, length = 1000)
     private String authorizationGrantTypes;
 
+    @Column(length = 1000)
     private String redirectUris;
+
+    @Column(length = 1000)
+    private String postLogoutRedirectUris;
 
     @NotNull
     @Column(nullable = false)
@@ -54,6 +58,7 @@ public class RegisteredClientJpaEntity {
     private String clientSettings;
     @Column(columnDefinition = "TEXT")
     private String tokenSettings;
+
 
     public RegisteredClientJpaEntity() {
     }
@@ -155,6 +160,14 @@ public class RegisteredClientJpaEntity {
 
     public void setTokenSettings(String tokenSettings) {
         this.tokenSettings = tokenSettings;
+    }
+
+    public String getPostLogoutRedirectUris() {
+        return postLogoutRedirectUris;
+    }
+
+    public void setPostLogoutRedirectUris(String postLogoutRedirectUris) {
+        this.postLogoutRedirectUris = postLogoutRedirectUris;
     }
 
     //</editor-fold>
