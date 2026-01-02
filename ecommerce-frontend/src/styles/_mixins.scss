@@ -1,0 +1,21 @@
+@mixin squircle($values...) {
+  $fallback-ratio: 0.45;
+  $x-values: ();
+
+  @each $val in $values {
+    @if type-of($val) == 'number' and $val > 0 {
+      $x-values: append($x-values, $val * $fallback-ratio, space);
+    } @else {
+      $x-values: append($x-values, $val, space);
+    }
+  }
+
+  // 1. Áp dụng cho trình duyệt cũ
+  border-radius: $x-values;
+
+  // 2. Nếu hỗ trợ corner-shape (chuẩn tương lai)
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: $values; // Dùng giá trị gốc (ví dụ 30px)
+  }
+}

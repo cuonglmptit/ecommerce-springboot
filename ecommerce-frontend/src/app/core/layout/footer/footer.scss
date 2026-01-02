@@ -1,0 +1,8 @@
+@use "../../../../styles/mixins" as *;
+
+:host {
+  @include squircle(10px);
+  height: 100px;
+  background: crimson;
+  display: flex;
+}
