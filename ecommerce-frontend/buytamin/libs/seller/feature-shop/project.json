@@ -1,0 +1,20 @@
+{
+  "name": "seller-feature-shop",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/seller/feature-shop/src",
+  "prefix": "seller",
+  "projectType": "library",
+  "tags": ["scope:seller", "type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../coverage/libs/seller/feature-shop"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

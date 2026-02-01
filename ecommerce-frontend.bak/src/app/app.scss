@@ -1,0 +1,10 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1; /* Giúp phần Main tự động giãn ra để đẩy Footer xuống dưới cùng */
+  display: block;
+}

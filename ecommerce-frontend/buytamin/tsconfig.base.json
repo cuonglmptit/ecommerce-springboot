@@ -1,0 +1,42 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@buytamin/shared/data-access": ["libs/shared/data-access/src/index.ts"],
+      "@buytamin/shared/ui-common": ["libs/shared/ui-common/src/index.ts"],
+      "@buytamin/shared/util": ["libs/shared/util/src/index.ts"],
+      "@buytamin/admin/feature-shell": [
+        "libs/admin/feature-shell/src/index.ts"
+      ],
+      "@buytamin/seller/feature-shell": [
+        "libs/seller/feature-shell/src/index.ts"
+      ],
+      "@buytamin/customer/feature-shell": [
+        "libs/customer/feature-shell/src/index.ts"
+      ],
+      "@buytamin/admin/feature-management": [
+        "libs/admin/feature-management/src/index.ts"
+      ],
+      "@buytamin/seller/feature-shop": [
+        "libs/seller/feature-shop/src/index.ts"
+      ],
+      "@buytamin/customer/feature-home": [
+        "libs/customer/feature-home/src/index.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
