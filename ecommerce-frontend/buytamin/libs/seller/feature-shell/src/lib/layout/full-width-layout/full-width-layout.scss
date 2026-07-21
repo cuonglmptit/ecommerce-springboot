@@ -1,0 +1,12 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%; // Chiếm toàn bộ chiều ngang
+  background-color: #fff;
+  padding: 0; // Thường trang Editor sẽ tự quản lý padding bên trong component con
+}

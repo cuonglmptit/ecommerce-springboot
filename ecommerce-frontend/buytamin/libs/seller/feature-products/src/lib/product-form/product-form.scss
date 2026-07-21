@@ -1,0 +1,23 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+::ng-deep {
+  seller-basic-info,
+  seller-product-specification,
+  seller-product-description,
+  seller-sales-info,
+  seller-shipping,
+  seller-others {
+    display: block;
+    background: lightcyan;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+}

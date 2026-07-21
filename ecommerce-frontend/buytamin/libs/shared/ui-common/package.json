@@ -1,0 +1,9 @@
+{
+  "name": "@buytamin/styles",
+  "version": "0.0.1",
+  "exports": {
+    "./mixins": "./src/lib/styles/_mixins.scss",
+    "./global": "./src/lib/styles/_global.scss",
+    "./reset": "./src/lib/styles/_reset.scss"
+  }
+}

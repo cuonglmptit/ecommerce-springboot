@@ -35,7 +35,15 @@
       ],
       "@buytamin/customer/feature-home": [
         "libs/customer/feature-home/src/index.ts"
-      ]
+      ],
+      "@buytamin/seller/feature-products": [
+        "libs/seller/feature-products/src/index.ts"
+      ],
+      "@buytamin/seller/data-access": ["libs/seller/data-access/src/index.ts"],
+      "@buytamin/seller/feature-dashboard": [
+        "libs/seller/feature-dashboard/src/index.ts"
+      ],
+      "@buytamin/shared/models": ["libs/shared/models/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -110,7 +110,7 @@ Thinking?: Thấy nửa vời quá => làm luôn toàn hệ thống luôn cho đ
 ### **Location**
 - Chứa: `province`, `district`, `ward`, `addressLine`  
 - Dùng cho: `UserAddress`, `ShopAddress`, `Warehouse`...  
-- Luôn tạo mới khi user thêm địa chỉ (**snapshot**)  
+- Luôn tạo mới khi user thêm địa chỉ
 - Có thể mở rộng: `latitude`, `longitude`, `placeId`, `formattedAddress`  
 - Tích hợp Google Maps hoặc hệ thống bản đồ bên ngoài  
 
@@ -335,3 +335,26 @@ nên nhớ lưu otp trong OtpToken là hash để tránh lộ otp -> otpHash, c�
 12/11/2025: ĐÃ XONG ĐĂNG NHẬP ĐĂNG KÝ (LOCAL VÀ 3RD PARTY)
 -> còn có tính năng liên kết tính sau
 giờ tập trung làm Product
+
+18/11/2025: Product làm sau, giờ làm shop trước vì product phụ thuộc shop, xem lại logic Shop, Attribue
+Shop sẽ có thể tự tạo Attribute hoặc AttributeOption có scope SHOP cũng như các shop khác không thấy mà chỉ có shop đấy thấy đc,
+về việc xóa Attribute hay gì thì nó vẫn tồn tại ở product trước đó nếu nó đã được sử dụng tại 1 product nào đó,
+và việc xóa chỉ soft-delete nên không lo việc data integrity, tuy nhiên nếu như mà chưa có product nào sử dụng thì có thể hard-delete 
+DONE: đã xong phần Location mà Shop dùng đến
+TODO: làm tiếp phần Shop, tạo shop,... Sau đó làm Product
+19/11/2025: đang bị lỗi người dùng chưa đăng nhập khi post create shop
+23/11/2025: đã xong logic tạo shop
+giờ tiếp tục logic product
+26/11/2025:
+làm tạm xong Media, Category vì product cần Media, Category, Attribute
+29/11/2025:
+Ý TƯỞNG CHỐNG TRÙNG ẢNH VÀ TỐI ƯU BĂNG THÔNG KHI UPLOAD LẠI
+1. SPA (Frontend) có một hàng chờ ảnh (queue).
+Khi user upload ảnh → SPA tính hash.
+Nếu hash đã tồn tại trong queue → báo trùng → không upload lên backend.
+→ SPA tự chống trùng trong 1 phiên làm việc.
+2. Nếu ảnh không trùng trong queue → gửi ảnh lên backend.
+Backend tính hash trên file nhận được.
+Nếu hash đã tồn tại trong DB → backend không upload → trả về URL của ảnh cũ.
+Nếu hash chưa có trong DB → backend upload ảnh → lưu record (hash + url).
+→ Backend chống trùng trên toàn hệ thống.

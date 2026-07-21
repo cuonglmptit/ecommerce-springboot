@@ -1,0 +1,7 @@
+<div class="error-container">
+  <img [src]="imageUrl()" alt="Error Image" class="error-img">
+  <p class="error-msg">{{ message() }}</p>
+  <a [routerLink]="homeLink()" class="btn-home">
+    {{ homeButtonText() }}
+  </a>
+</div>

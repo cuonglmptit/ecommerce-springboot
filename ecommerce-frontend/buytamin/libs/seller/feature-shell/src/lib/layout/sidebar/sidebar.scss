@@ -1,0 +1,7 @@
+:host {
+  display: block; // Hoặc flex nếu bạn muốn chia menu bên trong
+  width: 250px;   // Tăng lên 250px cho chuẩn menu quản trị
+  height: 100%;   // Full chiều cao của app-body
+  background: white;
+  border-right: 1px solid #eee;
+}
