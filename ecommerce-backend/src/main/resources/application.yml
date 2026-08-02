@@ -12,7 +12,7 @@ spring:
   # Connect database Postgres
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/cuonglmstore_ecommerce}
-    username: ${DB_USERNAME:postgres}
+    username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:Cuongdemo123}
   jpa:
     hibernate:
@@ -112,9 +112,9 @@ auth:
     rsa-public-key: ${AUTH_JWT_RSA_PUBLIC_KEY:classpath:certs/public.pem}
 
 cloudinary:
-    cloud-name: ${CLOUD_NAME}
-    api-key: ${API_KEY}
-    api-secret: ${API_SECRET}
+  cloud-name: ${CLOUDINARY_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 
 server:
   port: 8080
