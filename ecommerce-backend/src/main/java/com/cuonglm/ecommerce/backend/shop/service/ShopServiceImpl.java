@@ -5,6 +5,8 @@ import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
 import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateRequestDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
+import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoView;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 import com.cuonglm.ecommerce.backend.shop.repository.ShopRepository;
@@ -15,6 +17,8 @@ import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
  * ShopServiceImpl – Cài đặt logic của {@link ShopService}.
@@ -178,5 +182,31 @@ public class ShopServiceImpl implements ShopService {
         // 3. CẤP ROLE SELLER cho User sở hữu Shop
         Long ownerId = shop.getOwner().getId();
         userService.grantRoleToUser(ownerId, UserRole.SELLER);
+    }
+
+    @Override
+    public Optional<ShopInfoDTO> findShopInfoById(Long shopId) {
+        return shopRepository.findShopInfoById(shopId).map(this::mapToShopInfoDTO);
+    }
+
+    @Override
+    public Shop getShopReference(Long shopId) {
+        return shopRepository.getReferenceById(shopId);
+    }
+
+    @Override
+    public Optional<ShopInfoDTO> findShopInfoByOwnerId(Long ownerId) {
+        return shopRepository.findShopInfoByOwnerId(ownerId).map(this::mapToShopInfoDTO);
+    }
+
+    //Helper
+    private ShopInfoDTO mapToShopInfoDTO(ShopInfoView view) {
+        return new ShopInfoDTO(
+                view.getId(),
+                view.getName(),
+                view.getDescription(),
+                view.getStatus(),
+                view.getOwnerId()
+        );
     }
 }

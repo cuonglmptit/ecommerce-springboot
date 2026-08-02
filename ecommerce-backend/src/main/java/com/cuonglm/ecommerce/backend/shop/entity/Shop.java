@@ -32,7 +32,7 @@ public class Shop {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false, unique = true)
     private User owner;
 
     @Column(nullable = false, length = 255)
