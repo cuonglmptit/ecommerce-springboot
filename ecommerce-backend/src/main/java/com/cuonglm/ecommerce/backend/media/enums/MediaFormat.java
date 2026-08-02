@@ -1,10 +1,10 @@
 package com.cuonglm.ecommerce.backend.media.enums;
 
 /**
- * MediaFormat – Định dạng file media được hỗ trợ.
+ * MediaFormat – Định dạng file variantMedia được hỗ trợ.
  *
  * <p>
- * Enum định nghĩa các định dạng file media được phép upload và xử lý
+ * Enum định nghĩa các định dạng file variantMedia được phép upload và xử lý
  * trong hệ thống. Giúp validate file type và xác định cách xử lý phù hợp.
  * </p>
  *
@@ -34,7 +34,7 @@ public enum MediaFormat {
     }
 
     /**
-     * Phương thức trả về loại media tương ứng với định dạng.
+     * Phương thức trả về loại variantMedia tương ứng với định dạng.
      */
     public MediaType getMediaType() {
         return mediaType;

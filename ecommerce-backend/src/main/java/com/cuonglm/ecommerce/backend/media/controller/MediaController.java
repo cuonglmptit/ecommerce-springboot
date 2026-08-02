@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @since Monday, 24 November 2025
  */
 @RestController
-@RequestMapping("/api/v1/media")
+@RequestMapping("/api/v1/variantMedia")
 public class MediaController {
     private final MediaService mediaService;
 

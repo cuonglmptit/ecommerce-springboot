@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.media.service.storage.cloudinary;
+    package com.cuonglm.ecommerce.backend.media.service.storage.cloudinary;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

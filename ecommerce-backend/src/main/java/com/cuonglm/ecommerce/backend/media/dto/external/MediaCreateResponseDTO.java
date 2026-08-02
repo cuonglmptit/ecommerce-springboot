@@ -5,7 +5,7 @@ import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import java.util.UUID;
 
 /**
- * MediaCreateResponseDTO – Response cho việc tạo media.
+ * MediaCreateResponseDTO – Response cho việc tạo variantMedia.
  *
  * @author cuonglmptit
  * @since Tuesday, 25 November 2025

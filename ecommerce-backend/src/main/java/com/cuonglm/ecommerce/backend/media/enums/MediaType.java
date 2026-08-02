@@ -1,11 +1,11 @@
 package com.cuonglm.ecommerce.backend.media.enums;
 
 /**
- * MediaType – Loại media trong hệ thống (ảnh, video, file...).
+ * MediaType – Loại variantMedia trong hệ thống (ảnh, video, file...).
  *
  * <p>
- * Enum định nghĩa các loại media được hỗ trợ trong hệ thống ecommerce,
- * bao gồm hình ảnh, video và các loại media khác.
+ * Enum định nghĩa các loại variantMedia được hỗ trợ trong hệ thống ecommerce,
+ * bao gồm hình ảnh, video và các loại variantMedia khác.
  * </p>
  *
  * @author cuonglmptit

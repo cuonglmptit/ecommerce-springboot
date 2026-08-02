@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Media – Lưu thông tin media dùng chung (ảnh, video, v.v.)
+ * Media – Lưu thông tin 1 media (ảnh, video, v.v.)
  *
  * <p>
  * Media có thể là ảnh (image), video, hoặc loại khác. Được dùng cho Product, Category, Avatar...
@@ -35,11 +35,11 @@ public class Media {
      * UUID với GenerationType.UUID (JPA 3.1+)
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+//    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /**
-     * Loại media (ảnh, video,...)
+     * Loại variantMedia (ảnh, video,...)
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -53,9 +53,9 @@ public class Media {
     private MediaProvider provider = MediaProvider.CLOUDINARY;
 
     /**
-     * Đường dẫn media
+     * Đường dẫn variantMedia
      */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String url;
 
     /**
@@ -65,7 +65,7 @@ public class Media {
     private String externalId;
 
     /**
-     * Mô tả media (accessibility, SEO)
+     * Mô tả variantMedia (accessibility, SEO)
      */
     private String alt;
 
@@ -182,5 +182,8 @@ public class Media {
         this.type = type;
     }
 
-    //</editor-fold>
+    public void setId(UUID id) {
+        this.id = id;
+    }
+//</editor-fold>
 }

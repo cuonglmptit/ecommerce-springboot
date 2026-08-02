@@ -3,10 +3,9 @@ package com.cuonglm.ecommerce.backend.media.service;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.media.dto.external.CloudResourceDTO;
 import com.cuonglm.ecommerce.backend.media.dto.external.MediaCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
-import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
-import com.cuonglm.ecommerce.backend.media.enums.MediaType;
 import com.cuonglm.ecommerce.backend.media.repository.MediaRepository;
 import com.cuonglm.ecommerce.backend.media.service.storage.StorageService;
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoDTO;
@@ -15,6 +14,9 @@ import com.cuonglm.ecommerce.backend.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * MediaServiceImpl – Triển khai logic các phương thức của {@link MediaService}.
@@ -33,6 +35,23 @@ public class MediaServiceImpl implements MediaService {
         this.storageService = storageService;
         this.mediaRepository = mediaRepository;
         this.userService = userService;
+    }
+
+    @Override
+    public Optional<MediaInfoDTO> findMediaInfoById(UUID id) {
+        return mediaRepository.findMediaInfoById(id)
+                .map(view -> new MediaInfoDTO(
+                                view.getId(),
+                                view.getType(),
+                                view.getStatus(),
+                                view.getUploader_Id()
+                        )
+                );
+    }
+
+    @Override
+    public Media getMediaReference(UUID mediaId) {
+        return mediaRepository.getReferenceById(mediaId);
     }
 
     @Override
@@ -60,7 +79,8 @@ public class MediaServiceImpl implements MediaService {
         // 4. Lưu Entity Media vào DB
         Media media = new Media();
 
-        User userRef = new User(); userRef.setId(currentUser.id());
+        User userRef = new User();
+        userRef.setId(currentUser.id());
         media.setUploader(userRef);
         media.setUrl(resource.url());
         media.setExternalId(resource.externalId());

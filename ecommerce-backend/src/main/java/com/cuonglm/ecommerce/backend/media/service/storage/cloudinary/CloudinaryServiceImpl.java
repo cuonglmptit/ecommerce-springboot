@@ -70,10 +70,10 @@ public class CloudinaryServiceImpl implements StorageService {
         try {
             // ObjectUtils.emptyMap() vì việc xóa không cần options phức tạp
             Map destroyResult = cloudinary.uploader().destroy(externalId, ObjectUtils.emptyMap());
-            System.out.println("Kết quả thực hiện xóa media trên Cloudinary: " + externalId + ": "
+            System.out.println("Kết quả thực hiện xóa variantMedia trên Cloudinary: " + externalId + ": "
                     + (String) destroyResult.get("result"));
         } catch (IOException e) {
-            System.err.println("Lỗi khi xóa media trên Cloudinary: " + externalId + ". Lỗi: " + e.getMessage());
+            System.err.println("Lỗi khi xóa variantMedia trên Cloudinary: " + externalId + ". Lỗi: " + e.getMessage());
         }
     }
 
