@@ -1,6 +1,28 @@
+// File: com/cuonglm/ecommerce/backend/user/DataInitializer.java
+
 package com.cuonglm.ecommerce.backend.user;
 
+import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
+import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.repository.AttributeOptionRepository;
+import com.cuonglm.ecommerce.backend.attribute.repository.AttributeRepository;
 import com.cuonglm.ecommerce.backend.auth.service.registeredclient.DatabaseRegisteredClientRepository;
+import com.cuonglm.ecommerce.backend.category.entity.Category;
+import com.cuonglm.ecommerce.backend.category.entity.CategoryAttribute;
+import com.cuonglm.ecommerce.backend.category.enums.FilterType;
+import com.cuonglm.ecommerce.backend.category.repository.CategoryAttributeRepository;
+import com.cuonglm.ecommerce.backend.category.repository.CategoryRepository;
+import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
+import com.cuonglm.ecommerce.backend.media.entity.Media;
+import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
+import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
+import com.cuonglm.ecommerce.backend.media.enums.MediaType;
+import com.cuonglm.ecommerce.backend.media.repository.MediaRepository;
+import com.cuonglm.ecommerce.backend.shop.entity.Shop;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
+import com.cuonglm.ecommerce.backend.shop.repository.ShopRepository;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
@@ -20,6 +42,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+
 
 /**
  * DataInitializer – Khởi tạo dữ liệu người dùng và OAuth2 Clients mặc định.
@@ -42,7 +65,14 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initData(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
-                               DatabaseRegisteredClientRepository registeredClientRepository) {
+                               DatabaseRegisteredClientRepository registeredClientRepository,
+                               // Thêm Repositories cho Catalog
+                               CategoryRepository categoryRepository,
+                               AttributeRepository attributeRepository,
+                               AttributeOptionRepository attributeOptionRepository,
+                               CategoryAttributeRepository categoryAttributeRepository,
+                               ShopRepository shopRepository,
+                               MediaRepository mediaRepository) { // 👈 THÊM MediaRepository
         return args -> {
 
             // ----------------------------
@@ -60,9 +90,6 @@ public class DataInitializer {
                 system.setRoles(Set.of(UserRole.ADMIN)); // Vai trò đặc biệt
                 system.setStatus(UserStatus.ACTIVE);
 
-                // Lưu user này trước, nó sẽ có createdBy/modifiedBy là NULL (vì chưa có auditor)
-                // Hoặc bạn có thể tự set id cho nó là 0 nếu dùng GenerationType.IDENTITY, nhưng tốt nhất là dùng AUTO.
-                // Nếu dùng AUTO, hệ thống sẽ tự cấp ID.
                 return userRepository.save(system);
             });
 
@@ -82,6 +109,7 @@ public class DataInitializer {
                 admin.setStatus(UserStatus.ACTIVE);
                 userRepository.save(admin);
             }
+            // ... (Giữ nguyên logic tạo các user khác
             if (userRepository.findByUsername("cuong").isEmpty()) {
                 System.out.println("⏳ Creating default 'cuong' user...");
                 User user = new User();
@@ -157,10 +185,25 @@ public class DataInitializer {
                 userRepository.save(user);
             }
 
+            // Lấy User admin đã được tạo để gán làm Owner cho Shop và Uploader cho Media
+            User adminUser = userRepository.findByUsername("admin")
+                    .orElseThrow(() -> new RuntimeException("Admin user not found, cannot proceed with data initialization."));
+
             // ----------------------------
-            // 3. Khởi tạo RegisteredClient
+            // 3. Khởi tạo Data Catalog (Category & Attribute)
             // ----------------------------
-            // (Giữ nguyên logic khởi tạo OAuth2 Clients của bạn)
+            initCatalogData(categoryRepository, attributeRepository, attributeOptionRepository, categoryAttributeRepository, shopRepository);
+
+            // ----------------------------
+            // 4. Khởi tạo Media mặc định
+            // ----------------------------
+            initDefaultMedia(mediaRepository, adminUser); // 👈 GỌI PHƯƠNG THỨC KHỞI TẠO MEDIA
+
+
+            // ----------------------------
+            // 5. Khởi tạo RegisteredClient
+            // ----------------------------
+            // ... (Giữ nguyên logic khởi tạo OAuth2 Clients của bạn)
 
             if (registeredClientRepository.findByClientId("client") == null) {
                 // ... (Logic tạo client 1)
@@ -180,8 +223,8 @@ public class DataInitializer {
                                 .requireAuthorizationConsent(true)
                                 .build())
                         .tokenSettings(TokenSettings.builder()
-                                .accessTokenTimeToLive(Duration.ofMinutes(30))
-                                .refreshTokenTimeToLive(Duration.ofHours(2))
+                                .accessTokenTimeToLive(Duration.ofMinutes(100))
+                                .refreshTokenTimeToLive(Duration.ofHours(200))
                                 .build())
                         .build();
                 registeredClientRepository.save(client1);
@@ -237,5 +280,260 @@ public class DataInitializer {
 
             System.out.println("✅ DataInitializer: Default users and OAuth2 clients have been initialized.");
         };
+    }
+
+    /**
+     * Khởi tạo 3 Media mặc định nếu chưa tồn tại.
+     *
+     * @param mediaRepository Repository của Media.
+     * @param uploader        User thực hiện upload.
+     */
+    private void initDefaultMedia(MediaRepository mediaRepository, User uploader) {
+        System.out.println("⏳ Initializing Default Media...");
+
+        // Media 1: Ảnh sản phẩm demo (ID: 000...0001)
+        if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001")).isEmpty()) {
+            Media media1 = createMedia(
+                    "t-shirt-image-1",
+                    "https://cloudinary.com/product/t-shirt.jpg",
+                    "ecommerce/products/user-1/t-shirt1-12345",
+                    "Ảnh áo thun đỏ",
+                    "Áo Thun Đỏ Demo",
+                    MediaType.IMAGE,
+                    MediaProvider.CLOUDINARY,
+                    MediaFormat.JPG,
+                    uploader
+            );
+            media1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+            mediaRepository.save(media1);
+        }
+
+        // Media 2: Ảnh avatar demo (ID: 000...0002)
+        if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000002")).isEmpty()) {
+            Media media2 = createMedia(
+                    "t-shirt-image-2",
+                    "https://cloudinary.com/product/t-shirt.jpg",
+                    "ecommerce/products/user-1/t-shirt2-12345",
+                    "Ảnh áo thun đỏ",
+                    "Áo Thun Đỏ Demo",
+                    MediaType.IMAGE,
+                    MediaProvider.CLOUDINARY,
+                    MediaFormat.JPG,
+                    uploader
+            );
+            media2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+            mediaRepository.save(media2);
+        }
+
+        // Media 2: Ảnh avatar demo (ID: 000...0002)
+        if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000003")).isEmpty()) {
+            Media media3 = createMedia(
+                    "t-shirt-image-3",
+                    "https://cloudinary.com/product/t-shirt.jpg",
+                    "ecommerce/products/user-1/t-shirt3-12345",
+                    "Ảnh áo thun đỏ",
+                    "Áo Thun Đỏ Demo",
+                    MediaType.IMAGE,
+                    MediaProvider.CLOUDINARY,
+                    MediaFormat.JPG,
+                    uploader
+            );
+            media3.setId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
+            mediaRepository.save(media3);
+        }
+
+        // Ảnh cho user id3 để test
+        User cuong = new User(); cuong.setId(3L);
+        if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000004")).isEmpty()) {
+            Media media3 = createMedia(
+                    "t-shirt-image-4",
+                    "https://cloudinary.com/product/t-shirt4.jpg",
+                    "ecommerce/products/user-2/t-shirt3-12345",
+                    "Img3",
+                    "Img3",
+                    MediaType.IMAGE,
+                    MediaProvider.CLOUDINARY,
+                    MediaFormat.JPG,
+                    cuong
+            );
+            media3.setId(UUID.fromString("00000000-0000-0000-0000-000000000004"));
+            mediaRepository.save(media3);
+        }
+
+        System.out.println("✅ Default Media initialized successfully.");
+    }
+
+
+    /**
+     * Helper method để tạo Media.
+     */
+    private Media createMedia(String idPlaceholder, String url, String externalId, String alt, String title, MediaType type, MediaProvider provider, MediaFormat format, User uploader) {
+        Media media = new Media();
+        media.setUrl(url);
+        media.setExternalId(externalId);
+        media.setAlt(alt);
+        media.setTitle(title);
+        media.setType(type);
+        media.setProvider(provider);
+        media.setFormat(format);
+        media.setUploader(uploader);
+        media.setStatus(BasicStatus.ACTIVE);
+        return media;
+    }
+
+    /**
+     * Khởi tạo dữ liệu mẫu cho Category và Attribute.
+     */
+    private void initCatalogData(CategoryRepository categoryRepository,
+                                 AttributeRepository attributeRepository,
+                                 AttributeOptionRepository attributeOptionRepository,
+                                 CategoryAttributeRepository categoryAttributeRepository,
+                                 ShopRepository shopRepository) {
+
+        System.out.println("⏳ Initializing Catalog Data (Categories & Attributes)...");
+
+        // 1. Khởi tạo/Tìm Shop mặc định (cần cho Attribute Scope SHOP)
+        Shop defaultShop = shopRepository.findById(1L).orElseGet(() -> {
+            Shop shop = new Shop(); // Giả định Shop entity có constructor không tham số
+            shop.setName("Shop Demo A");
+            // ----------------------------------------------------
+            // 👈 BỔ SUNG: SET CÁC TRƯỜNG BẮT BUỘC
+            User admin = new User(); admin.setId(2L);
+            shop.setOwner(admin);
+            shop.setStatus(ShopStatus.ACTIVE);
+            // ----------------------------------------------------
+            return shopRepository.save(shop);
+        });
+
+        // 2. Attribute: Màu Sắc (GLOBAL Scope)
+        Attribute colorAttribute = attributeRepository.findByCode("MAU_SAC").orElseGet(() -> {
+            Attribute attr = createAttribute("Màu Sắc", "MAU_SAC", AttributeScope.GLOBAL, null);
+            return attributeRepository.save(attr);
+        });
+
+        // 3. Attribute Options cho Màu Sắc (GLOBAL)
+        if (attributeOptionRepository.findByAttributeAndValue(colorAttribute, "Đỏ").isEmpty()) {
+            AttributeOption colorRed = createAttributeOption(colorAttribute, "Đỏ", AttributeScope.GLOBAL, null);
+            colorRed.setId(UUID.fromString("00000000-0000-0000-0000-000000000001")); // ID mặc định
+            attributeOptionRepository.save(colorRed);
+        }
+        if (attributeOptionRepository.findByAttributeAndValue(colorAttribute, "Xanh Dương").isEmpty()) {
+            AttributeOption colorBlue = createAttributeOption(colorAttribute, "Xanh Dương", AttributeScope.GLOBAL, null);
+            colorBlue.setId(UUID.fromString("00000000-0000-0000-0000-000000000002")); // ID mặc định
+            attributeOptionRepository.save(colorBlue);
+        }
+
+        // 4. Attribute: Kích Cỡ (SHOP Scope)
+        Attribute sizeAttribute = attributeRepository.findByShopIdAndCode(defaultShop.getId(), "KICH_CO").orElseGet(() -> {
+            Attribute attr = createAttribute("Kích Cỡ", "KICH_CO", AttributeScope.SHOP, defaultShop);
+            return attributeRepository.save(attr);
+        });
+
+        // 5. Attribute Options cho Kích Cỡ (SHOP)
+        if (attributeOptionRepository.findByAttributeAndValue(sizeAttribute, "S").isEmpty()) {
+            AttributeOption sizeS = createAttributeOption(sizeAttribute, "S", AttributeScope.SHOP, defaultShop);
+            sizeS.setId(UUID.fromString("00000000-0000-0000-0000-000000000003")); // ID mặc định
+            attributeOptionRepository.save(sizeS);
+        }
+        if (attributeOptionRepository.findByAttributeAndValue(sizeAttribute, "M").isEmpty()) {
+            AttributeOption sizeM = createAttributeOption(sizeAttribute, "M", AttributeScope.SHOP, defaultShop);
+            sizeM.setId(UUID.fromString("00000000-0000-0000-0000-000000000004")); // ID mặc định
+            attributeOptionRepository.save(sizeM);
+        }
+
+
+        Shop secondShop = shopRepository.findById(2L).orElseGet(() -> {
+            Shop shop = new Shop();
+            shop.setName("Shop Demo B");
+            User cuong = new User(); cuong.setId(3L);
+            shop.setOwner(cuong);
+            shop.setStatus(ShopStatus.ACTIVE);
+            return shopRepository.save(shop);
+        });
+
+        Attribute shippingMethodAttribute = attributeRepository.findByShopIdAndCode(secondShop.getId(), "CHIEU_DAI").orElseGet(() -> {
+            Attribute attr = createAttribute("Chiều dài", "CHIEU_DAI", AttributeScope.SHOP, secondShop);
+            return attributeRepository.save(attr);
+        });
+
+        if (attributeOptionRepository.findByAttributeAndValue(shippingMethodAttribute, "50CM").isEmpty()) {
+            AttributeOption shippingFast = createAttributeOption(shippingMethodAttribute, "50CM", AttributeScope.SHOP, secondShop);
+            shippingFast.setId(UUID.fromString("00000000-0000-0000-0000-000000000008"));
+            attributeOptionRepository.save(shippingFast);
+        }
+        if (attributeOptionRepository.findByAttributeAndValue(shippingMethodAttribute, "100CM").isEmpty()) {
+            AttributeOption shippingStandard = createAttributeOption(shippingMethodAttribute, "100CM", AttributeScope.SHOP, secondShop);
+            shippingStandard.setId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
+            attributeOptionRepository.save(shippingStandard);
+        }
+
+        // 6. Categories (Cây phân cấp)
+        Category fashionCategory = categoryRepository.findByName("Thời Trang").orElseGet(() -> {
+            Category cat = createCategory(1L, "Thời Trang", "Các loại sản phẩm thời trang.", "/1/", 0, null);
+            return categoryRepository.save(cat);
+        });
+
+        Category shirtCategory = categoryRepository.findByName("Áo Sơ Mi").orElseGet(() -> {
+            Category cat = createCategory(2L, "Áo Sơ Mi", "Áo sơ mi nam nữ các loại.", "/1/2/", 1, fashionCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category longSleeveShirt = categoryRepository.findByName("Sơ Mi Dài Tay").orElseGet(() -> {
+            Category cat = createCategory(3L, "Sơ Mi Dài Tay", "Áo sơ mi dài tay.", "/1/2/3/", 2, shirtCategory);
+            return categoryRepository.save(cat);
+        });
+
+        // 7. Liên kết Attribute với Category (CategoryAttribute)
+        if (categoryAttributeRepository.findByCategoryAndAttribute(shirtCategory, colorAttribute).isEmpty()) {
+            CategoryAttribute shirtColorAttr = createCategoryAttribute(shirtCategory, colorAttribute, 10, true, FilterType.CHECKBOX);
+            categoryAttributeRepository.save(shirtColorAttr);
+        }
+
+        System.out.println("✅ Catalog Data (Categories & Attributes) initialized successfully.");
+    }
+
+    // --- Helper methods to simplify object creation ---
+
+    private Category createCategory(Long id, String name, String description, String path, Integer depth, Category parent) {
+        Category category = new Category();
+        // category.setId(id); // Dùng cho ví dụ, nhưng đã comment
+        category.setName(name);
+        category.setDescription(description);
+        category.setPath(path);
+        category.setDepth(depth);
+        category.setParent(parent);
+        category.setSortOrder(0);
+        category.setStatus(BasicStatus.ACTIVE);
+        return category;
+    }
+
+    private Attribute createAttribute(String name, String code, AttributeScope scope, Shop shop) {
+        Attribute attribute = new Attribute();
+        attribute.setName(name);
+        attribute.setCode(code);
+        attribute.setScope(scope);
+        attribute.setShop(shop);
+        attribute.setStatus(AttributeStatus.ACTIVE);
+        return attribute;
+    }
+
+    private AttributeOption createAttributeOption(Attribute attribute, String value, AttributeScope scope, Shop shop) {
+        AttributeOption option = new AttributeOption();
+        option.setAttribute(attribute);
+        option.setValue(value);
+        option.setScope(scope);
+        option.setShop(shop);
+        option.setStatus(AttributeStatus.ACTIVE);
+        return option;
+    }
+
+    private CategoryAttribute createCategoryAttribute(Category category, Attribute attribute, Integer sortOrder, Boolean isFilterable, FilterType filterType) {
+        CategoryAttribute categoryAttribute = new CategoryAttribute();
+        categoryAttribute.setCategory(category);
+        categoryAttribute.setAttribute(attribute);
+        categoryAttribute.setSortOrder(sortOrder);
+        categoryAttribute.setFilterable(isFilterable);
+        categoryAttribute.setFilterType(filterType);
+        return categoryAttribute;
     }
 }

@@ -20,12 +20,26 @@ public enum ProductStatus {
      */
     INACTIVE,
     /**
-     * Hết hàng (có thể vẫn hiển thị)
+     * Đang trạng thái nháp
      */
-    OUT_OF_STOCK,
+    DRAFT,
+    /**
+     * Đang chờ duyệt
+     */
+    PENDING_REVIEW,
     /**
      * Bị khóa do vi phạm
      */
+    /**
+     * Ngừng kinh doanh: shop chủ động ngưng vĩnh viễn (Không thể mua)
+     */
+    DISCONTINUED,
+    /**
+     * Bị khóa: do admin khóa do vi phạm
+     */
     SUSPENDED,
+    /**
+     * Đã soft delete
+     */
     DELETED
 }

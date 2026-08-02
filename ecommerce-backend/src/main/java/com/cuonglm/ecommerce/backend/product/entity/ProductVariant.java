@@ -1,8 +1,11 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
-import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
+import com.cuonglm.ecommerce.backend.product.dto.internal.AttributeSnapshot;
+import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,11 +55,89 @@ public class ProductVariant {
     @Column(nullable = false)
     private Integer stockQuantity = 0;
 
-    @OneToMany(mappedBy = "variant")
-    private List<ProductVariantAttributeValue> attributeValues = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attributes", columnDefinition = "jsonb")
+    private List<AttributeSnapshot> attributes = new ArrayList<>();
 
     @OneToMany(mappedBy = "variant")
-    private List<ProductMedia> media;
+    private List<ProductMedia> media = new ArrayList<>();
 
-    private ProductStatus status;
+    @Column(nullable = false)
+    private ProductVariantStatus status;
+
+    //<editor-fold desc="Getters/Setters">
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public BigDecimal getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(BigDecimal salePrice) {
+        this.salePrice = salePrice;
+    }
+
+    public Integer getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
+
+    public List<AttributeSnapshot> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(List<AttributeSnapshot> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<ProductMedia> getMedia() {
+        return media;
+    }
+
+    public void setMedia(List<ProductMedia> media) {
+        this.media = media;
+    }
+
+    public ProductVariantStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProductVariantStatus status) {
+        this.status = status;
+    }
+
+    //</editor-fold>
 }

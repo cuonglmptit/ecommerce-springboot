@@ -5,10 +5,10 @@ import com.cuonglm.ecommerce.backend.category.enums.FilterType;
 import jakarta.persistence.*;
 
 /**
- * CategoryAttribute – Mô_tả_ngắn_về_lớp.
+ * CategoryAttribute – Liên kết đến các Attribute liên quan đến ngành hàng này.
  *
  * <p>
- * Mô_tả_chi_tiết.
+ * Link đến các Attribute để sử dụng như filter thông số 1 ngành hàng, chọn thông tin chi tiết (specs) của một sản phẩm trong ngành hàng.
  * </p>
  *
  * @author cuonglmptit
@@ -47,4 +47,55 @@ public class CategoryAttribute {
     @Enumerated(EnumType.STRING)
     private FilterType filterType = FilterType.CHECKBOX;
 
+    // <editor-fold desc="Getters/Setters">
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Attribute getAttribute() {
+        return attribute;
+    }
+
+    public void setAttribute(Attribute attribute) {
+        this.attribute = attribute;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public Boolean getFilterable() {
+        return isFilterable;
+    }
+
+    public void setFilterable(Boolean filterable) {
+        isFilterable = filterable;
+    }
+
+    public FilterType getFilterType() {
+        return filterType;
+    }
+
+    public void setFilterType(FilterType filterType) {
+        this.filterType = filterType;
+    }
+
+    // </editor-fold>
 }

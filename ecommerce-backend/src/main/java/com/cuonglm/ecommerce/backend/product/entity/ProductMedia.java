@@ -23,10 +23,10 @@ public class ProductMedia {
     private UUID id;
 
     /**
-     * nullable – ảnh dùng cho product chung
+     * Ảnh phải được gắn với một Product, du` la` cho Variant hay la` dung` chung
      */
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     /**
@@ -56,4 +56,55 @@ public class ProductMedia {
         }
     }
 
+    //<editor-fold desc="Getters/Setters">
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public Media getMedia() {
+        return media;
+    }
+
+    public void setMedia(Media media) {
+        this.media = media;
+    }
+
+    public boolean isThumbnail() {
+        return isThumbnail;
+    }
+
+    public void setThumbnail(boolean thumbnail) {
+        isThumbnail = thumbnail;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    //</editor-fold>
 }

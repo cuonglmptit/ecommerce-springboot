@@ -1,8 +1,8 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
 import com.cuonglm.ecommerce.backend.category.entity.Category;
+import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
-import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -43,28 +43,105 @@ public class Product {
     @Column(nullable = false, length = 255)
     private String name;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductSpecification> specifications = new ArrayList<>();
+
     @Column(nullable = false, length = 255)
     private String description;
 
-    @OneToMany(mappedBy = "product", orphanRemoval = true)
-    private List<ProductMedia> media;
+    @Column(nullable = false)
+    private ProductStatus status;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductMedia> media = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
 
+
     //<editor-fold desc="Audit metadata">
     @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", updatable = false)
-    private User createdBy;
+    private Long createdById;
+
     @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modified_by_id")
-    private User modifiedBy;
+    private Long modifiedById;
+
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant modifiedAt;
     //</editor-fold>
+
+    //<editor-fold desc="Getter/Setters">
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<ProductMedia> getMedia() {
+        return media;
+    }
+
+    public void setMedia(List<ProductMedia> media) {
+        this.media = media;
+    }
+
+    public List<ProductVariant> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(List<ProductVariant> variants) {
+        this.variants = variants;
+    }
+
+    public ProductStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProductStatus status) {
+        this.status = status;
+    }
+//</editor-fold>
+
 }
