@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.attribute.repository;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoView;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
@@ -29,4 +30,8 @@ public interface AttributeOptionRepository extends JpaRepository<AttributeOption
     Collection<Object> findByAttributeAndValue(Attribute attribute, String value);
 
     Optional<AttributeOption> findByAttributeAndValueIgnoreCase(Attribute attribute, String value);
+
+    List<AttributeOptionInfoView> findAllByAttributeNameIgnoreCaseAndValueContainingIgnoreCaseAndStatus(
+            String attributeName, String value, AttributeStatus status
+    );
 }

@@ -59,4 +59,21 @@ public interface AttributeService {
      * @return {@link AttributeOption} tìm được hoặc không tìm đc
      */
     AttributeOptionInfoDTO findOrCreateAttributeOption(Long shopId, String attributeName, String optionValue);
+
+    /**
+     * Search các trong DB
+     * @param shopId
+     * @param query
+     * @return Một {@link AttributeInfoDTO} chứa thông tin nếu có
+     */
+    List<AttributeInfoDTO> searchAttributes(Long shopId, String query);
+
+    /**
+     * Search các option theo thên attribute
+     * @param shopId
+     * @param attributeName
+     * @param query
+     * @return
+     */
+    List<AttributeOptionInfoDTO> searchOptionsByAttributeName(Long shopId, String attributeName, String query);
 }

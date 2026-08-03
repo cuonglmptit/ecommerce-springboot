@@ -3,9 +3,11 @@ package com.cuonglm.ecommerce.backend.attribute.repository;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +38,8 @@ public interface AttributeRepository extends JpaRepository<Attribute, UUID> {
     Optional<Attribute> findByCode(String code);
 
     Optional<Attribute> findByShopIdAndCode(Long shopId, String code);
+
+    List<AttributeInfoView> findAllByShopIdAndNameContainingIgnoreCaseOrScopeAndNameContainingIgnoreCase(
+            Long shopId, String name1, AttributeScope scope, String name2
+    );
 }

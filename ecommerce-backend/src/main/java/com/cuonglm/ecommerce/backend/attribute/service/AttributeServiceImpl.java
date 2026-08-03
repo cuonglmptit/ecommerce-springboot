@@ -13,9 +13,12 @@ import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeOptionRepository;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeRepository;
 import com.cuonglm.ecommerce.backend.core.exception.ConflictException;
+import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
+import com.cuonglm.ecommerce.backend.core.utils.NamingUtils;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.service.ShopService;
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoDTO;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
@@ -60,6 +63,51 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     @Override
+    public List<AttributeInfoDTO> searchAttributes(Long shopId, String query) {
+        // 1. Kiểm tra quyền truy cập của User đối với shopId này
+        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_READ);
+
+        // 2. Lấy danh sách Attribute (Global + Của shopId này)
+        return attributeRepository
+                .findAllByShopIdAndNameContainingIgnoreCaseOrScopeAndNameContainingIgnoreCase(
+                        shopId, query, AttributeScope.GLOBAL, query
+                )
+                .stream()
+                .map(view -> new AttributeInfoDTO(
+                        view.getId(),
+                        view.getName(),
+                        view.getCode(),
+                        view.getScope(),
+                        view.getShopId(),
+                        view.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AttributeOptionInfoDTO> searchOptionsByAttributeName(Long shopId, String attributeName, String query) {
+        // 1. Kiểm tra quyền truy cập của User đối với shopId này
+        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
+
+        // 2. Lấy danh sách Option thuộc đúng Attribute Name của shopId này
+        return attributeOptionRepository
+                .findAllByAttributeNameIgnoreCaseAndValueContainingIgnoreCaseAndStatus(
+                        attributeName, query, AttributeStatus.ACTIVE
+                )
+                .stream()
+                .map(view -> new AttributeOptionInfoDTO(
+                        view.getId(),
+                        view.getValue(),
+                        view.getAttributeId(),
+                        view.getAttributeName(),
+                        view.getShopId(),
+                        view.getScope(),
+                        view.getStatus()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public AttributeCreateResponseDTO createAttribute(AttributeCreateRequestDTO attrDTO) {
         // 1. Lấy thông tin người dùng và xác định phạm vi (Scope)
         UserInfoDTO currentUser = userService.getCurrentAuthenticatedUserInfo();
@@ -71,7 +119,7 @@ public class AttributeServiceImpl implements AttributeService {
         Shop shopRef = shopService.getShopReference(shopInfo.id());
 
         // 2. Chuẩn hóa và Tạo Code (Ví dụ: "Màu sắc" -> "MAU_SAC")
-        String attributeCode = generateAttributeCode(attrDTO.name());
+        String attributeCode = NamingUtils.toConstantName(attrDTO.name());
 
         // 3. Kiểm tra tính Duy nhất (Unique Constraint)
         // Kiểm tra Code đã tồn tại trong phạm vi Shop này chưa
@@ -133,7 +181,7 @@ public class AttributeServiceImpl implements AttributeService {
     public AttributeOptionInfoDTO findOrCreateAttributeOption(Long shopId, String attributeName, String optionValue) {
         String cleanAttrName = attributeName.trim();
         String cleanOptValue = optionValue.trim();
-        String attributeCode = generateAttributeCode(cleanAttrName);
+        String attributeCode = NamingUtils.toConstantName(cleanAttrName);
 
         // 1. Tìm Attribute theo ShopID + Code, nếu không có thì tìm Global theo Code, nếu vẫn không có thì tạo mới cho Shop này
         Attribute attribute = attributeRepository.findByShopIdAndCode(shopId, attributeCode)
@@ -174,21 +222,6 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     // --- Helper Method ---
-
-    /**
-     * Chuyển tên attribute sang code, ví dụ: "Màu Sắc" -> "MAU_SAC"
-     *
-     * @param name Tên attribute
-     * @return Code chuẩn hóa
-     */
-    private String generateAttributeCode(String name) {
-        String normalized = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", ""); // Loại bỏ dấu
-        return normalized.toUpperCase()
-                .trim()
-                .replaceAll("\\s+", "_")
-                .replaceAll("[^A-Z0-9_]", "");
-    }
 
     @Override
     public Optional<AttributeInfoDTO> findAttributeInfoById(UUID uuid) {
