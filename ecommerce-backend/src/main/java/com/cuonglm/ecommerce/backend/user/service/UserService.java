@@ -34,7 +34,7 @@ public interface UserService {
      * Tìm kiếm UserSecurityAndProfileDTO theo username hoặc email.
      *
      * @param usernameOrEmail Tham số username hoặc email để tìm kiếm.
-     * @return Optional chứa UserSecurityDTO nếu tìm thấy, ngược lại là Optional.empty().
+     * @return Optional chứa UserSecurityDTO nếu tìm thấy, ngược lại là {@link Optional#empty()}.
      */
     Optional<UserSecurityAndProfileDTO> findSecurityDetailsByUsernameOrEmail(String usernameOrEmail);
 
@@ -43,7 +43,7 @@ public interface UserService {
      *
      * @param userOauth2Info            Thông tin OAuth2 của người dùng.
      * @param initialRandomPasswordHash Mật khẩu ngẫu nhiên đã được hash để gán cho User mới đăng ký qua OAuth2.
-     * @return Optional chứa UserSecurityAndProfileDTO nếu tìm thấy hoặc tạo mới thành công, ngược lại là Optional.empty().
+     * @return Optional chứa UserSecurityAndProfileDTO nếu tìm thấy hoặc tạo mới thành công, ngược lại là {@link Optional#empty()}.
      */
     Optional<UserSecurityAndProfileDTO> findOrCreateUserByOAuth2(
             UserOAuth2Info userOauth2Info, String initialRandomPasswordHash);
@@ -52,7 +52,7 @@ public interface UserService {
      * Tìm người dùng bằng Email.
      *
      * @param email Email cần tìm.
-     * @return Optional chứa User nếu tìm thấy, ngược lại là Optional.empty().
+     * @return Optional chứa User nếu tìm thấy, ngược lại là {@link Optional#empty()}.
      */
     Optional<User> findUserByEmail(String email);
 
@@ -60,7 +60,7 @@ public interface UserService {
      * Tìm người dùng bằng số điện thoại.
      *
      * @param phoneNumber Số điện thoại cần tìm.
-     * @return Optional chứa User nếu tìm thấy, ngược lại là Optional.empty().
+     * @return Optional chứa User nếu tìm thấy, ngược lại là {@link Optional#empty()}.
      */
     Optional<User> findUserByPhoneNumber(String phoneNumber);
 
@@ -108,6 +108,13 @@ public interface UserService {
     Optional<User> findUserById(Long id);
 
     void deleteUser(Long id);
+
+    /**
+     * Tạo một User reference (proxy) mà không cần query DB
+     * @param userId Id của User
+     * @return User reference
+     */
+    public User getUserReference(Long userId);
 
     // <editor-fold desc="Các phương thức kiểm tra">
     boolean existsByUsername(String username);

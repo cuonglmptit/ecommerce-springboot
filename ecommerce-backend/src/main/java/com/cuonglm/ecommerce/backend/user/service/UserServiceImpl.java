@@ -303,6 +303,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserReference(Long userId) {
+        return userRepository.getReferenceById(userId);
+    }
+
+    @Override
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }

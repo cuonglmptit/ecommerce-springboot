@@ -33,7 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Tìm kiếm User theo username hoặc email
      * @param username Username muốn tìm
      * @param email Email muốn tìm
-     * @return Optional chứa User nếu tìm thấy, ngược lại là Optional.empty()
+     * @return Optional chứa User nếu tìm thấy, ngược lại là {@link Optional#empty()}.
      */
     Optional<User> findByUsernameOrEmail(String username, String email);
 
