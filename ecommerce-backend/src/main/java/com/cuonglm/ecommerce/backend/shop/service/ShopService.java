@@ -4,6 +4,7 @@ import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateRequestDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateResponseDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 
 import java.util.Optional;
 
@@ -15,8 +16,16 @@ import java.util.Optional;
  */
 public interface ShopService {
     ShopCreateResponseDTO createShop(ShopCreateRequestDTO request);
+
     void approveShop(Long shopId);
+
     Optional<ShopInfoDTO> findShopInfoById(Long shopId);
+
     Shop getShopReference(Long shopId);
+
     Optional<ShopInfoDTO> findShopInfoByOwnerId(Long ownerId);
+
+    boolean hasPermission(Long shopId, ShopPermission requiredPermission);
+
+    void validatePermission(Long shopId, ShopPermission requiredPermission);
 }

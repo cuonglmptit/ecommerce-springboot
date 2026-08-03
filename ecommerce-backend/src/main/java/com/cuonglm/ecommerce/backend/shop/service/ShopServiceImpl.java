@@ -8,6 +8,7 @@ import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateResponseDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoView;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 import com.cuonglm.ecommerce.backend.shop.repository.ShopRepository;
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoDTO;
@@ -35,6 +36,37 @@ public class ShopServiceImpl implements ShopService {
     public ShopServiceImpl(UserService userService, ShopRepository shopRepository) {
         this.userService = userService;
         this.shopRepository = shopRepository;
+    }
+
+    @Override
+    public boolean hasPermission(Long shopId, ShopPermission requiredPermission) {
+        UserInfoDTO currentUser = userService.getCurrentAuthenticatedUserInfo();
+
+        if(currentUser.isAdmin()) return true;
+
+        ShopInfoDTO shopInfo = findShopInfoById(shopId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Shop ID: " + shopId));
+
+        if (shopInfo.ownerId().equals(currentUser.id())) {
+            return true;
+        }
+
+        // Nhân viên / Cộng tác viên (LOGIC MỞ RỘNG SAU NÀY):
+        // Lấy danh sách Quyền của Nhân viên này trong ShopID từ bảng ShopStaff/ShopRole
+        // VD Pseudo code:
+        // Set<ShopPermission> staffPermissions = shopStaffRepository.findPermissions(shopId, currentUser.id());
+        // return staffPermissions.contains(requiredPermission);
+
+        return false;
+    }
+
+    @Override
+    public void validatePermission(Long shopId, ShopPermission requiredPermission) {
+        if (!hasPermission(shopId, requiredPermission)) {
+            throw new PermissionDeniedException(
+                    String.format("Bạn không có quyền [%s] trên Shop ID: %d", requiredPermission, shopId)
+            );
+        }
     }
 
     @Override

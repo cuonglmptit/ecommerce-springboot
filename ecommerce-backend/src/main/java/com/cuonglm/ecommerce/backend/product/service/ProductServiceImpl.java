@@ -7,6 +7,8 @@ import com.cuonglm.ecommerce.backend.category.service.CategoryService;
 import com.cuonglm.ecommerce.backend.core.exception.ConflictException;
 import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
+import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
+import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.service.MediaService;
 import com.cuonglm.ecommerce.backend.product.dto.external.*;
@@ -20,6 +22,7 @@ import com.cuonglm.ecommerce.backend.product.repository.ProductMediaRepository;
 import com.cuonglm.ecommerce.backend.product.repository.ProductRepository;
 import com.cuonglm.ecommerce.backend.product.repository.ProductVariantRepository;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
+import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.service.ShopService;
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoDTO;
 import com.cuonglm.ecommerce.backend.user.service.UserService;
@@ -42,7 +45,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductMediaRepository productMediaRepository;
 
-    private final UserService userService;
     private final AttributeService attributeService;
     private final CategoryService categoryService;
     private final ShopService shopService;
@@ -59,7 +61,6 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
         this.productVariantRepository = productVariantRepository;
         this.productMediaRepository = productMediaRepository;
-        this.userService = userService;
         this.attributeService = attributeService;
         this.categoryService = categoryService;
         this.shopService = shopService;
@@ -68,21 +69,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductCreateResponseDTO createProduct(ProductCreateRequestDTO request) {
-        // 1. Kiểm tra quyền sở hữu shop
-        UserInfoDTO currentUser = userService.getCurrentAuthenticatedUserInfo();
-        ShopInfoDTO shopInfo = shopService.findShopInfoById(request.shopId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Shop id: " + request.shopId()));
-        if (!shopInfo.ownerId().equals(currentUser.id())) {
-            throw new PermissionDeniedException("User không có quyền hoặc không phải chủ shop.");
-        }
-        Long shopOwnerId = currentUser.id();
+        // 1. Kiểm tra quyền thao tác trên Shop
+        // Check User có phải Owner, Admin, hay Nhân viên có quyền PRODUCT_WRITE không.
+        shopService.validatePermission(request.shopId(), ShopPermission.PRODUCT_WRITE);
+
+        // Lấy ID người dùng đang thao tác
+        Long currentUserId = SecurityUtils.getRequiredCurrentUserId();
 
         CategoryInfoDTO categoryInfo = categoryService.findCategoryInfoById(request.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Category id: " + request.categoryId()));
 
         // 2. Tạo & Lưu Product Cha
         Product product = new Product();
-        product.setShop(shopService.getShopReference(shopInfo.id()));
+        // 👈 Dùng getShopReference trực tiếp từ request.shopId(), không cần query findShopInfoById thừa thãi
+        product.setShop(shopService.getShopReference(request.shopId()));
         product.setCategory(categoryService.getCategoryReference(categoryInfo.id()));
         product.setName(request.name());
         product.setDescription(request.description());
@@ -92,13 +92,13 @@ public class ProductServiceImpl implements ProductService {
 
         // 3. Xử lý Ảnh chung (Product Media)
         if (request.productMedia() != null) {
-            saveProductMedia(savedProduct, null, request.productMedia(), shopOwnerId);
+            saveProductMedia(savedProduct, null, request.productMedia(), currentUserId);
         }
 
         // 4. Xử lý Variants (Con)
         if (request.variants() != null) {
             for (ProductVariantCreateRequestDTO variantDTO : request.variants()) {
-                createAndSaveVariant(savedProduct, variantDTO, currentUser.id());
+                createAndSaveVariant(savedProduct, variantDTO, currentUserId);
             }
         }
 
@@ -118,7 +118,6 @@ public class ProductServiceImpl implements ProductService {
                         v.getSku(),
                         v.getPrice(),
                         v.getStockQuantity(),
-                        // Map trực tiếp từ snapshot JSON: "Màu: Đỏ"
                         v.getAttributes().stream()
                                 .map(attr -> attr.attributeName() + ": " + attr.optionValue())
                                 .toList()

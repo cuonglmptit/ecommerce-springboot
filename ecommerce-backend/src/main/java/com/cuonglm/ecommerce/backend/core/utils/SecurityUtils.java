@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.core.utils;
 
+import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +46,10 @@ public class SecurityUtils {
         return Optional.empty();
     }
 
+    /**
+     * Lấy ra ID người dùng hiện tại hoặc {@link Optional#empty()}.
+     * @return
+     */
     public static Optional<Long> getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
@@ -55,5 +60,14 @@ public class SecurityUtils {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Lấy ra ID người dùng hoặc throw luôn lỗi chưa xác thực
+     * @return ID người người dùng hiện tại hoặc ném lỗi
+     */
+    public static Long getRequiredCurrentUserId() {
+        return getCurrentUserId()
+                .orElseThrow(() -> new UnauthenticatedException("Người dùng chưa đăng nhập hoặc Token không hợp lệ."));
     }
 }
