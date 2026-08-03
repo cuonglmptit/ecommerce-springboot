@@ -1,7 +1,4 @@
 <div class="sales-info-container" [formGroup]="form">
-  <div>
-
-  </div>
   <div class="variations-toggle-section">
     <label for="" class="section-title">Thông tin bán hàng</label>
 
@@ -26,7 +23,7 @@
 
           <div class="input-field">
             <label for="">SKU sản phẩm</label>
-            <input type="text" formControlName="sku" placeholder="Nhập SKU" />
+            <input type="text" formControlName="sku" placeholder="Nhập SKU sản phẩm" />
           </div>
         </div>
       </div>
@@ -42,26 +39,51 @@
         </div>
 
         <div formArrayName="attributeDefinitions" class="attribute-definitions-list">
-          @for (attrCtrl of attributeDefsArray.controls; track attrCtrl; let attrIndex = $index) {
+          @for (attrCtrl of attributeDefsArray.controls; track attrCtrl.controls.id.value; let attrIndex = $index) {
             <div [formGroupName]="attrIndex" class="attribute-group-card" style="margin-bottom: 20px; padding: 15px; border: 1px dashed #ccc;">
               <div class="input-field">
                 <label for="">Nhóm thuộc tính {{ attrIndex + 1 }}</label>
-                <input type="text" formControlName="name" placeholder="Ví dụ: Màu sắc, Kích thước" />
+
+                <!-- 🔄 THÊM list ĐỂ HIỂN THỊ AUTOCOMPLETE SẠCH SẼ -->
+                <input
+                  type="text"
+                  formControlName="name"
+                  [attr.list]="'attr-list-' + attrIndex"
+                  placeholder="Ví dụ: Màu sắc, Kích thước, Dung lượng..."
+                  (input)="onAttributeNameInput(attrIndex, $event)"
+                />
+                <datalist [id]="'attr-list-' + attrIndex">
+                  @for (item of getAttributeSuggestions(attrIndex); track item.id) {
+                    <option [value]="item.name">{{ item.scope === 'GLOBAL' ? '(Global)' : '(Shop)' }}</option>
+                  }
+                </datalist>
               </div>
 
               <div formArrayName="options" class="options-container" style="margin-top: 10px; padding-left: 20px;">
                 <label for="">Các phân loại (Tùy chọn):</label>
                 @for (optCtrl of attrCtrl.controls.options.controls; track optCtrl.controls.id.value; let optIndex = $index; let totalOptionsInGroup = $count) {
                   <div [formGroupName]="optIndex" class="option-item-row" style="margin-top: 5px; display: flex; align-items: center; gap: 8px;">
+                    @if (optCtrl.controls.name.errors?.['required'] && optIndex !== totalOptionsInGroup - 1) {
+                      <div style="color: #ff4d4f; font-size: 12px; font-weight: 500; margin-top: 2px; margin-left: 2px;">
+                        ⚠️ Tên phân loại không được để trống.
+                      </div>
+                    }
+
+                    <!-- 🔄 THÊM list AUTOCOMPLETE CHO OPTION THEO ĐÚNG NGỮ CẢNH ATTRIBUTE CHA -->
                     <input
                       type="text"
                       formControlName="name"
-                      placeholder="Ví dụ: Đỏ, Xanh, S, M"
-                      (input)="syncTrailingEmptyInputs()"
+                      [attr.list]="'opt-list-' + attrIndex + '-' + optIndex"
+                      placeholder="Ví dụ: Đỏ, Xanh, S, M, 128GB..."
+                      (input)="onOptionNameInput(attrIndex, optIndex, $event)"
                     />
+                    <datalist [id]="'opt-list-' + attrIndex + '-' + optIndex">
+                      @for (item of getOptionSuggestions(attrIndex, optIndex); track item.id) {
+                        <option [value]="item.value"></option>
+                      }
+                    </datalist>
 
-                    <!-- ✕ NÚT XÓA: Chỉ hiển thị khi nhóm này có từ 2 tùy chọn trở lên -->
-                    @if (totalOptionsInGroup > 1 && optIndex !== totalOptionsInGroup - 1|| optCtrl.controls.name.value) {
+                    @if (totalOptionsInGroup > 1 && optIndex !== totalOptionsInGroup - 1 || optCtrl.controls.name.value) {
                       <button
                         type="button"
                         class="btn-remove-option"
@@ -77,7 +99,6 @@
                   Tỉ lệ quy đổi: <strong style="color: #ff5722;">{{ totalVariantsCount }}</strong> / {{maxVariantsAllowed}} biến thể tối đa.
                 </div>
 
-                <!-- CẢNH BÁO ĐỎ: Xuất hiện khi chạm mốc tối đa -->
                 @if (totalVariantsCount >= maxVariantsAllowed) {
                   <div style="color: #ff4d4f; font-size: 13px; margin-top: 5px; font-weight: bold;">
                     ⚠️ Đã đạt giới hạn tối đa {{maxVariantsAllowed}} tổ hợp biến thể sản phẩm! Không thể thêm phân loại mới.
@@ -89,7 +110,6 @@
           }
         </div>
 
-        <!-- ➕ BỔ SUNG: Nút thêm hẳn một nhóm thuộc tính mới (Khống chế tối đa 2 nhóm) -->
         @if (attributeDefsArray.length < 2) {
           <button type="button" class="btn-add-attribute" style="margin-bottom: 20px; padding: 6px 12px; cursor: pointer;" (click)="addAttributeDefinition()">
             + Thêm nhóm thuộc tính mới
@@ -104,12 +124,11 @@
       <div class="variation-list-container">
         <h3>Danh sách biến thể</h3>
 
-        <!-- ➕ BỔ SUNG: Thanh cập nhật hàng loạt (Batch Edit / Apply To All) -->
         <div class="batch-edit-bar" style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center; background: #f5f5f5; padding: 10px; border-radius: 4px;">
           <span style="font-weight: bold; font-size: 14px;">Sửa hàng loạt:</span>
           <input type="number" #batchPrice placeholder="Giá bán" style="padding: 5px; width: 120px;" />
           <input type="number" #batchStock placeholder="Kho hàng" style="padding: 5px; width: 100px;" />
-          <input type="text" #batchSku placeholder="Mã SKU" style="padding: 5px; width: 15px;" />
+          <input type="text" #batchSku placeholder="Mã SKU" style="padding: 5px; width: 120px;" />
           <button type="button" style="padding: 5px 12px; background: #ff5722; color: white; border: none; border-radius: 4px; cursor: pointer;"
                   (click)="applyBatchValues(batchPrice.value, batchStock.value, batchSku.value); batchPrice.value=''; batchStock.value=''; batchSku.value=''">
             Apply To All
@@ -131,8 +150,8 @@
           </thead>
 
           <tbody formArrayName="variants">
-            @for (variantCtrl of variantsArray.controls; track variantCtrl.controls.attributeOptionIds.value.join('-'); let i = $index) {              <tr [formGroupName]="i">
-
+            @for (variantCtrl of variantsArray.controls; track variantCtrl.controls.sku.value + i; let i = $index) {
+              <tr [formGroupName]="i">
                 @if (i % variation2OptionsLength === 0) {
                   <td [attr.rowspan]="variation2OptionsLength">
                     {{ variantCtrl.controls.optionNames.value[0] || '-' }}
@@ -172,5 +191,4 @@
       </div>
     }
   </div>
-
 </div>

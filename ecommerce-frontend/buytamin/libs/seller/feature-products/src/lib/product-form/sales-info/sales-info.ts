@@ -11,9 +11,20 @@ import {
 } from '@angular/forms';
 import { ProductFormData } from '../product-form-data';
 import {
+  AttributeApi,
   AttributeDefinitionFormGroup,
+  AttributeInfoDTO,
+  AttributeOptionInfoDTO,
+  VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+} from 'rxjs';
 
 @Component({
   selector: 'seller-sales-info',
@@ -27,8 +38,23 @@ import {
 export class SalesInfo implements OnInit {
   private readonly formDataService = inject(ProductFormData);
   private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly attributeApi = inject(AttributeApi);
   private static readonly maxVariantsAllowed = 50;
   private static readonly maxAttributesAllowed = 2;
+
+  // Stream danh sách gợi ý cho từng ô
+  protected attributeSuggestions: AttributeInfoDTO[][] = [[], []];
+  protected optionSuggestions: Record<string, AttributeOptionInfoDTO[]> = {};
+
+  private readonly attrSearch$ = new Subject<{
+    index: number;
+    query: string;
+  }>();
+  private readonly optSearch$ = new Subject<{
+    attrIndex: number;
+    optIndex: number;
+    query: string;
+  }>();
 
   get form() {
     return this.formDataService.form;
@@ -57,6 +83,93 @@ export class SalesInfo implements OnInit {
     this.attributeDefsArray.valueChanges.subscribe(() => {
       this.formDataService.buildMatrixFromDefinitions();
     });
+
+    // (Debounce 300ms + Auto Cancel Request cũ bằng switchMap)
+    this.attrSearch$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(
+          (a, b) => a.index === b.index && a.query === b.query,
+        ),
+
+        switchMap(({ index, query }) => {
+          const shopId = this.formDataService.getSubmitPayload().shopId || 1;
+          return this.attributeApi
+            .searchAttributes(shopId, query)
+            .pipe(switchMap((data) => of({ index, data })));
+        }),
+      )
+      .subscribe(({ index, data }) => {
+        this.attributeSuggestions[index] = data;
+      });
+
+
+    // Subscribes RxJS tìm kiếm Option
+    this.optSearch$
+      .pipe(
+        debounceTime(300),
+        switchMap(({ attrIndex, optIndex, query }) => {
+          const attrName =
+            this.attributeDefsArray.at(attrIndex)?.get('name')?.value || '';
+          if (!attrName.trim())
+            return of({ key: `${attrIndex}-${optIndex}`, data: [] });
+
+          const shopId = this.formDataService.getSubmitPayload().shopId || 1;
+          return this.attributeApi
+            .searchOptions(shopId, attrName, query)
+            .pipe(
+              switchMap((data) =>
+                of({ key: `${attrIndex}-${optIndex}`, data }),
+              ),
+            );
+        }),
+      )
+      .subscribe(({ key, data }) => {
+        this.optionSuggestions[key] = data;
+      });
+  }
+
+  // Hàm lắng nghe khi gõ Tên Thuộc tính
+  onAttributeNameInput(attrIndex: number, event: Event) {
+    const query = (event.target as HTMLInputElement).value;
+    this.attrSearch$.next({ index: attrIndex, query });
+
+    // Kiểm tra xem chữ gõ vào có trùng với ID có sẵn trong gợi ý không
+    const matched = this.attributeSuggestions[attrIndex]?.find(
+      (a) => a.name.toLowerCase() === query.trim().toLowerCase(),
+    );
+
+    const group = this.attributeDefsArray.at(attrIndex);
+    if (group) {
+      if (matched) {
+        group.controls.id.setValue(matched.id); // Chọn đúng ID từ DB
+      } else {
+        group.controls.id.setValue(`temp-attr-${crypto.randomUUID()}`); // Gõ từ mới -> Gán ID tạm
+      }
+    }
+  }
+
+  // Hàm lắng nghe khi gõ Tên Phân loại
+  onOptionNameInput(attrIndex: number, optIndex: number, event: Event) {
+    const query = (event.target as HTMLInputElement).value;
+    this.optSearch$.next({ attrIndex, optIndex, query });
+    this.syncTrailingEmptyInputs();
+
+    const key = `${attrIndex}-${optIndex}`;
+    const matched = this.optionSuggestions[key]?.find(
+      (o) => o.value.toLowerCase() === query.trim().toLowerCase(),
+    );
+
+    const targetGroup = this.attributeDefsArray.at(attrIndex);
+    const optGroup = targetGroup?.controls.options.at(optIndex);
+
+    if (optGroup) {
+      if (matched) {
+        optGroup.controls.id.setValue(matched.id); // Chọn đúng ID từ DB
+      } else {
+        optGroup.controls.id.setValue(`temp-opt-${crypto.randomUUID()}`); // Gõ từ mới -> Gán ID tạm
+      }
+    }
   }
 
   get hasVariants(): boolean {
@@ -66,9 +179,9 @@ export class SalesInfo implements OnInit {
   enableVariants() {
     this.form.controls.hasVariants.setValue(true);
     this.variantsArray.clear();
-    if (this.attributeDefsArray.length === 0) {
-      this.addAttributeDefinition();
-    }
+    this.attributeDefsArray.clear();
+    // Thêm 1 nhóm thuộc tính trống ban đầu
+    this.addAttributeDefinition();
   }
 
   disableVariants() {
@@ -85,7 +198,7 @@ export class SalesInfo implements OnInit {
       price: [0, [Validators.required, Validators.min(0)]],
       salePrice: [0, [Validators.required, Validators.min(0)]],
       stockQuantity: [0, [Validators.required, Validators.min(0)]],
-      attributeOptionIds: this.fb.array<FormControl<string>>([]),
+      attributes: this.fb.control<VariantAttributeInput[]>([]),
       optionNames: this.fb.control<string[]>([]),
     });
 
@@ -98,7 +211,9 @@ export class SalesInfo implements OnInit {
     }
 
     const newAttributeGroup: AttributeDefinitionFormGroup = new FormGroup({
-      id: new FormControl(crypto.randomUUID() as string, { nonNullable: true }),
+      id: new FormControl(`temp-attr-${crypto.randomUUID()}`, {
+        nonNullable: true,
+      }),
       name: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required],
@@ -135,7 +250,9 @@ export class SalesInfo implements OnInit {
     const optionsArray = targetAttributeGroup.controls.options;
 
     const newOption = new FormGroup({
-      id: new FormControl(crypto.randomUUID() as string, { nonNullable: true }),
+      id: new FormControl(`temp-opt-${crypto.randomUUID()}`, {
+        nonNullable: true,
+      }),
       name: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required],
@@ -170,6 +287,7 @@ export class SalesInfo implements OnInit {
       optionsArray.removeAt(optionsArray.length - 1);
     }
   }
+
   syncTrailingEmptyInputs() {
     // Bước 1: Quét và XÓA tất cả các ô trống chờ đã trở nên "bất hợp pháp" do nhóm khác tăng số lượng
     this.attributeDefsArray.controls.forEach((_, attrIndex) => {
@@ -181,6 +299,21 @@ export class SalesInfo implements OnInit {
     // Bước 2: Quét và THÊM ô trống mới cho các nhóm đã điền đầy đủ (nếu không vượt quá giới hạn)
     this.attributeDefsArray.controls.forEach((attrGroup, attrIndex) => {
       const optionsArray = attrGroup.controls.options;
+
+      optionsArray.controls.forEach((optCtrl, optIndex) => {
+        const nameCtrl = optCtrl.controls.name;
+        const isLastElement = optIndex === optionsArray.length - 1;
+        const isNameEmpty = !nameCtrl.value || nameCtrl.value.trim() === '';
+
+        // Ô cuối cùng và đang trống -> Gỡ validator
+        if (isLastElement && isNameEmpty) {
+          nameCtrl.clearValidators();
+        } else {
+          // Ô ở giữa (hoặc ô cuối đã điền chữ) -> Ép validator required
+          nameCtrl.setValidators([Validators.required]);
+        }
+        nameCtrl.updateValueAndValidity({ emitEvent: false });
+      });
 
       if (optionsArray.length === 0) {
         this.addOptionToAttribute(attrIndex);
@@ -228,8 +361,8 @@ export class SalesInfo implements OnInit {
     return counts.reduce((acc, count) => acc * count, 1);
   }
 
-  // 2. Hàm dự báo trước: "Nếu tôi thêm 1 tùy chọn vào Nhóm này, liệu tổng số biến thể có vượt quá 100 không?"
-  // 🔄 ĐÃ CẬP NHẬT: Dự báo giới hạn dựa trên số lượng thực dụng
+  // 2. Hàm dự báo trước: "Nếu tôi thêm 1 tùy chọn vào Nhóm này, liệu tổng số biến thể có vượt quá MAX không?"
+  // Dự báo giới hạn dựa trên số lượng thực dụng
   wouldExceedLimit(attrIndex: number): boolean {
     if (this.attributeDefsArray.length === 0) return false;
 
@@ -321,5 +454,16 @@ export class SalesInfo implements OnInit {
     return (
       this.attributeDefsArray.controls[1]?.get('name')?.value || 'Variation 2'
     );
+  }
+
+  protected getAttributeSuggestions(index: number): AttributeInfoDTO[] {
+    return this.attributeSuggestions[index] || [];
+  }
+
+  protected getOptionSuggestions(
+    attrIndex: number,
+    optIndex: number,
+  ): AttributeOptionInfoDTO[] {
+    return this.optionSuggestions[`${attrIndex}-${optIndex}`] || [];
   }
 }

@@ -7,6 +7,7 @@ import {
 import {
   AttributeDefinitionFormGroup,
   CreateProductRequest,
+  VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
 
@@ -70,24 +71,38 @@ export class ProductFormData {
       return;
     }
 
-    // Thuật toán tích Descartes tính toán các tổ hợp option
     const combinations = validGroups.reduce((acc, group) => {
       if (acc.length === 0) {
-        return group.options.map((opt) => [opt]);
+        return group.options.map((opt) => [
+          { attrId: group.id, attrName: group.name, ...opt },
+        ]);
       }
       return acc.flatMap((combo) =>
-        group.options.map((opt) => [...combo, opt]),
+        group.options.map((opt) => [
+          ...combo,
+          { attrId: group.id, attrName: group.name, ...opt },
+        ]),
       );
     }, [] as any[][]);
 
-    // Convert sang cấu trúc dữ liệu để sinh Form
     const formattedCombinations = combinations.map((combo) => {
-      // combo sẽ có dạng: [ {id: 'uuid-do', name: 'do'}, {id: 'uuid-xx', name: 'xx'} ]
-      const skuString = combo.map((o) => o.name.toUpperCase()).join('-'); // Tự sinh SKU nháp
+      const skuString =
+        'SKU-' + combo.map((o) => o.name.toUpperCase()).join('-');
+
+      const attributes: VariantAttributeInput[] = combo.map((o) => ({
+        attributeId:
+          o.attrId.startsWith('temp-') || o.attrId.length < 30
+            ? null
+            : o.attrId,
+        attributeName: o.attrName,
+        optionId: o.id.startsWith('temp-') || o.id.length < 30 ? null : o.id,
+        optionValue: o.name,
+      }));
+
       return {
         sku: skuString,
-        optionIds: combo.map((o) => o.id),
-        optionNames: combo.map((o) => o.name), // Giữ lại cái tên để hiển thị lên bảng
+        attributes,
+        optionNames: combo.map((o) => o.name),
       };
     });
 
@@ -95,41 +110,38 @@ export class ProductFormData {
   }
 
   generateVariants(
-    combinations: { sku: string; optionIds: string[]; optionNames: string[] }[],
+    combinations: {
+      sku: string;
+      attributes: VariantAttributeInput[];
+      optionNames: string[];
+    }[],
   ) {
     this.variantsArray.clear();
 
     combinations.forEach((combo) => {
-      // Khởi tạo cụm FormGroup bọc chuẩn kiểu dữ liệu của VariantFormGroup
       const variantGroup: VariantFormGroup = this.fb.group({
         sku: [combo.sku, Validators.required],
-        price: [0, [Validators.required, Validators.min(0)]],
-        salePrice: [0, [Validators.required, Validators.min(0)]],
-        stockQuantity: [0, [Validators.required, Validators.min(0)]],
-        // Biến đổi mảng string[] thành FormArray các FormControl<string>
-        attributeOptionIds: this.fb.array(
-          combo.optionIds.map((id) => this.fb.control(id)),
-        ),
+        price: [150000, [Validators.required, Validators.min(0)]],
+        salePrice: [120000, [Validators.required, Validators.min(0)]],
+        stockQuantity: [100, [Validators.required, Validators.min(0)]],
+        attributes: this.fb.control(combo.attributes),
         optionNames: this.fb.control(combo.optionNames),
       });
 
-      // Push vào mảng an toàn vì đã trùng khớp kiểu dữ liệu
       this.variantsArray.push(variantGroup);
     });
   }
+
   getSubmitPayload(): CreateProductRequest {
     const rawValue = this.form.getRawValue();
 
     return {
-      shopId: 1,
+      shopId: 2,
       categoryId: rawValue.basicInfo.categoryId,
       name: rawValue.basicInfo.name,
       description: rawValue.description,
-
-      // Bổ sung 2 trường dummy bị thiếu do kế thừa từ BaseProduct
       imageUrl: 'https://dummyimage.com/600x400',
       publicPrice: 0,
-
       productMedia: [
         {
           mediaId: '00000000-0000-0000-0000-000000000001',

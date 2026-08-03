@@ -1,11 +1,12 @@
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { VariantAttributeInput } from './products.models';
 
 export type VariantFormGroup = FormGroup<{
   sku: FormControl<string>;
   price: FormControl<number>;
   salePrice: FormControl<number>;
   stockQuantity: FormControl<number>;
-  attributeOptionIds: FormArray<FormControl<string>>;
+  attributes: FormControl<VariantAttributeInput[]>;
   optionNames: FormControl<string[]>;
 }>;
 

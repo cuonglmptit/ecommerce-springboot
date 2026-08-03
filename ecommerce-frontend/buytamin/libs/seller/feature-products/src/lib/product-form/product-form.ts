@@ -8,7 +8,6 @@ import {
   productsFeature,
 } from '@buytamin/seller/data-access';
 
-// 1. Import Component này vào (hãy kiểm tra lại chính xác đường dẫn trong dự án của bạn nhé)
 import { ProductDescription } from './product-description/product-description';
 import { ProductSpecification } from './product-specification/product-specification';
 import { SalesInfo } from './sales-info/sales-info';
@@ -17,7 +16,6 @@ import { Shipping } from './shipping/shipping';
 @Component({
   selector: 'seller-product-form',
   standalone: true,
-  // 2. Thêm ProductDescription vào mảng imports dưới đây
   imports: [
     ReactiveFormsModule,
     BasicInfo,
@@ -40,10 +38,10 @@ export class ProductForm {
   );
 
   onSubmit() {
-    // if (this.formData.form.invalid) {
-    //   this.formData.form.markAllAsTouched();
-    //   return;
-    // }
+    if (this.formData.form.invalid) {
+      this.formData.form.markAllAsTouched();
+      return;
+    }
 
     const payload = this.formData.getSubmitPayload();
     this.store.dispatch(ProductFormPageActions.submitForm({ payload }));

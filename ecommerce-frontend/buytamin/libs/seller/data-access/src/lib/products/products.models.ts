@@ -14,12 +14,19 @@ export interface ProductMedia {
   sortOrder: number;
 }
 
+export interface VariantAttributeInput {
+  attributeId?: string | null;
+  attributeName: string;
+  optionId?: string | null;
+  optionValue: string;
+}
+
 export interface Variant {
   sku: string;
   price: number;
   salePrice: number;
   stockQuantity: number;
-  attributeOptionIds: string[];
+  attributes: VariantAttributeInput[];
   variantMedia?: ProductMedia[];
 }
 
