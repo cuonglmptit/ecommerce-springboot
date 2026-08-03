@@ -46,10 +46,12 @@ public class OAuth2ServerConfig {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
                 OAuth2AuthorizationServerConfigurer.authorizationServer().oidc(Customizer.withDefaults());
         http
-                // Áp dụng cấu hình cho Authorization Server (bao gồm OAuth2 + OIDC)
-                .with(authorizationServerConfigurer, Customizer.withDefaults())
                 // Chỉ áp dụng Security FilterChain cho các endpoint của Authorization Server
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+                // CORS
+                .cors(Customizer.withDefaults())
+                // Áp dụng cấu hình cho Authorization Server (bao gồm OAuth2 + OIDC)
+                .with(authorizationServerConfigurer, Customizer.withDefaults())
                 // Tất cả các request đến các endpoint của AS đều cần xác thực
                 // (giúp tạo Exception nếu như cung cấp thông tin RegisteredClient không đúng và được redirect đến /login)
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
@@ -64,6 +66,10 @@ public class OAuth2ServerConfig {
     }
 
     private static final String[] AUTH_SECURITY_MATCHERS = {
+            // swagger
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            // apis free to enter
             "/auth/public/**",
             "/login/**",
             "/oauth2/**",
@@ -77,6 +83,7 @@ public class OAuth2ServerConfig {
         http
                 // 1. Áp dụng FilterChain cho các pattern công khai
                 .securityMatcher(AUTH_SECURITY_MATCHERS)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_SECURITY_MATCHERS).permitAll()
                 )

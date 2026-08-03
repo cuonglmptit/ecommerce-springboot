@@ -16,7 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @since Friday, 17 October 2025
  */
 @Configuration
-public class PasswordEncoderCongfig {
+public class PasswordEncoderConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         //Sử dụng BCryptPasswordEncoder để mã hóa mật khẩu
