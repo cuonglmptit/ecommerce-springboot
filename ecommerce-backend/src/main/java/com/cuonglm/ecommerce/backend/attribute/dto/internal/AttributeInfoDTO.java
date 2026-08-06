@@ -20,4 +20,17 @@ public record AttributeInfoDTO(
         Long shopId,
         AttributeStatus status
 ) {
+    public static AttributeInfoDTO fromView(AttributeInfoView view) {
+        if (view == null) {
+            return null;
+        }
+        return new AttributeInfoDTO(
+                view.getId(),
+                view.getName(),
+                view.getCode(),
+                view.getScope(),
+                view.getShopId(),
+                view.getStatus()
+        );
+    }
 }

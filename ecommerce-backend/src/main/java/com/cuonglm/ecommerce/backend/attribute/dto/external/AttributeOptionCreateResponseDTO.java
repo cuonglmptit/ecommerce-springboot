@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.attribute.dto.external;
 
+import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 
@@ -16,6 +17,16 @@ public record AttributeOptionCreateResponseDTO(
         String value,
         AttributeScope scope,
         AttributeStatus status,
-        Long shopId // ID của Shop sở hữu (null nếu GLOBAL)
+        Long shopId
 ) {
+    public static AttributeOptionCreateResponseDTO fromEntity(AttributeOption opt) {
+        if (opt == null) return null;
+        return new AttributeOptionCreateResponseDTO(
+                opt.getId(),
+                opt.getValue(),
+                opt.getScope(),
+                opt.getStatus(),
+                opt.getShop() != null ? opt.getShop().getId() : null
+        );
+    }
 }

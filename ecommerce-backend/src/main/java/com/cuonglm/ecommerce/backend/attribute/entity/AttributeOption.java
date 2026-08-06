@@ -76,6 +76,16 @@ public class AttributeOption {
     @JoinColumn(name = "shop_id")
     private Shop shop; // null nếu GLOBAL
 
+    public static AttributeOption of(Attribute attribute, String value) {
+        AttributeOption option = new AttributeOption();
+        option.setAttribute(attribute);
+        option.setValue(value);
+        option.setScope(attribute.getScope());
+        option.setShop(attribute.getShop());
+        option.setStatus(AttributeStatus.ACTIVE);
+        return option;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -1,11 +1,11 @@
 package com.cuonglm.ecommerce.backend.attribute.enums;
 
 /**
- * AttributeType – Mô_tả_ngắn_về_lớp.
- *
- * <p>
- * Mô_tả_chi_tiết.
- * </p>
+ * AttributeType - Phân loại attribute.
+ * <ul>
+ * {@link AttributeType#VARIATION} - Dùng cho phân loại sản phẩm.
+ * {@link AttributeType#SPECIFICATION} - Dùng cho thông tin mô tả.
+ *</ul>
  *
  * @author cuonglmptit
  * @since Friday, 06 February 2026

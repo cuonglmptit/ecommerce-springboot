@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.attribute.dto.external;
 
+import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 
@@ -23,4 +24,16 @@ public record AttributeCreateResponseDTO(
         // Danh sách các Option của Attribute này
         List<AttributeOptionCreateResponseDTO> options
 ) {
+    public static AttributeCreateResponseDTO fromEntity(Attribute attribute, List<AttributeOptionCreateResponseDTO> options) {
+        if (attribute == null) return null;
+        return new AttributeCreateResponseDTO(
+                attribute.getId(),
+                attribute.getName(),
+                attribute.getCode(),
+                attribute.getScope(),
+                attribute.getStatus(),
+                attribute.getShop() != null ? attribute.getShop().getId() : null,
+                options
+        );
+    }
 }

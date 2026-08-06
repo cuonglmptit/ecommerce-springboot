@@ -4,6 +4,7 @@ import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateReque
 import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateResponseDTO;
 import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeOptionCreateResponseDTO;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
+import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
@@ -13,7 +14,6 @@ import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeOptionRepository;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeRepository;
 import com.cuonglm.ecommerce.backend.core.exception.ConflictException;
-import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
 import com.cuonglm.ecommerce.backend.core.utils.NamingUtils;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * AttributeServiceImpl – Triển khai logic cho {@link AttributeService}
@@ -45,7 +44,10 @@ public class AttributeServiceImpl implements AttributeService {
     private final UserService userService;
     private final ShopService shopService;
 
-    public AttributeServiceImpl(AttributeRepository attributeRepository, AttributeOptionRepository attributeOptionRepository, UserService userService, ShopService shopService) {
+    public AttributeServiceImpl(AttributeRepository attributeRepository,
+                                AttributeOptionRepository attributeOptionRepository,
+                                UserService userService,
+                                ShopService shopService) {
         this.attributeRepository = attributeRepository;
         this.attributeOptionRepository = attributeOptionRepository;
         this.userService = userService;
@@ -62,49 +64,90 @@ public class AttributeServiceImpl implements AttributeService {
         return attributeOptionRepository.getReferenceById(id);
     }
 
-    @Override
-    public List<AttributeInfoDTO> searchAttributes(Long shopId, String query) {
-        // 1. Kiểm tra quyền truy cập của User đối với shopId này
-        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_READ);
 
-        // 2. Lấy danh sách Attribute (Global + Của shopId này)
-        return attributeRepository
-                .findAllByShopIdAndNameContainingIgnoreCaseOrScopeAndNameContainingIgnoreCase(
-                        shopId, query, AttributeScope.GLOBAL, query
-                )
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttributeInfoDTO> searchAttributes(
+            Long shopId,
+            List<AttributeScope> scopes,
+            List<AttributeType> types,
+            List<AttributeStatus> statuses,
+            String query
+    ) {
+        if (shopId != null) {
+            shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_READ);
+        }
+
+        List<AttributeScope> cleanScopes = (scopes != null && !scopes.isEmpty()) ? scopes : null;
+        List<AttributeType> cleanTypes = (types != null && !types.isEmpty()) ? types : null;
+        List<AttributeStatus> cleanStatuses = (statuses != null && !statuses.isEmpty()) ? statuses : null;
+
+        return attributeRepository.searchAttributes(
+                        shopId, cleanScopes, cleanTypes, cleanStatuses, query)
                 .stream()
-                .map(view -> new AttributeInfoDTO(
-                        view.getId(),
-                        view.getName(),
-                        view.getCode(),
-                        view.getScope(),
-                        view.getShopId(),
-                        view.getStatus()
-                ))
-                .collect(Collectors.toList());
+                .map(AttributeInfoDTO::fromView)
+                .toList();
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttributeInfoDTO> searchAttributes(Long shopId, String query, AttributeType type) {
+        List<AttributeType> types = (type != null) ? List.of(type) : null;
+        return searchAttributes(shopId, null, types, List.of(AttributeStatus.ACTIVE), query);
     }
 
     @Override
-    public List<AttributeOptionInfoDTO> searchOptionsByAttributeName(Long shopId, String attributeName, String query) {
-        // 1. Kiểm tra quyền truy cập của User đối với shopId này
-        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
+    @Transactional(readOnly = true)
+    public List<AttributeInfoDTO> searchUsableShopAttributes(
+            Long shopId,
+            List<AttributeType> types,
+            List<AttributeStatus> statuses,
+            String query
+    ) {
+        if (shopId != null) {
+            shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_READ);
+        }
 
-        // 2. Lấy danh sách Option thuộc đúng Attribute Name của shopId này
-        return attributeOptionRepository
-                .findAllByAttributeNameIgnoreCaseAndValueContainingIgnoreCaseAndStatus(
-                        attributeName, query, AttributeStatus.ACTIVE
+        List<AttributeType> cleanTypes = (types != null && !types.isEmpty()) ? types : null;
+        List<AttributeStatus> cleanStatuses = (statuses != null && !statuses.isEmpty()) ? statuses : null;
+
+        List<AttributeInfoView> views = attributeRepository.searchUsableShopAttributes(
+                shopId, cleanTypes, cleanStatuses, query
+        );
+
+        return views.stream()
+                .map(AttributeInfoDTO::fromView)
+                .toList();
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttributeInfoDTO> searchUsableShopAttributes(Long shopId, String query, AttributeType type) {
+        List<AttributeType> types = (type != null) ? List.of(type) : null;
+        return searchUsableShopAttributes(shopId, types, List.of(AttributeStatus.ACTIVE), query);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttributeOptionInfoDTO> searchOptionsByAttributeName(Long shopId, String attributeName, String query, AttributeType type) {
+        if (shopId != null) {
+            shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
+        }
+
+        List<AttributeType> types = (type != null) ? List.of(type) : null;
+
+        return attributeOptionRepository.searchAttributeOptions(
+                        shopId,
+                        attributeName,
+                        types,
+                        List.of(AttributeStatus.ACTIVE),
+                        query
                 )
                 .stream()
-                .map(view -> new AttributeOptionInfoDTO(
-                        view.getId(),
-                        view.getValue(),
-                        view.getAttributeId(),
-                        view.getAttributeName(),
-                        view.getShopId(),
-                        view.getScope(),
-                        view.getStatus()
-                ))
-                .collect(Collectors.toList());
+                .map(AttributeOptionInfoDTO::fromView)
+                .toList();
     }
 
     @Override
@@ -142,15 +185,8 @@ public class AttributeServiceImpl implements AttributeService {
         List<AttributeOption> savedOptions = new ArrayList<>();
         if (attrDTO.initialOptions() != null && !attrDTO.initialOptions().isEmpty()) {
             List<AttributeOption> newOptions = attrDTO.initialOptions().stream()
-                    .map(optionDTO -> {
-                        AttributeOption option = new AttributeOption();
-                        option.setValue(optionDTO.value());
-                        option.setAttribute(savedAttribute);
-                        option.setScope(scope);
-                        option.setShop(shopRef); // Kế thừa Shop từ Attribute cha
-                        option.setStatus(AttributeStatus.ACTIVE);
-                        return option;
-                    }).toList();
+                    .map(optionDTO -> AttributeOption.of(savedAttribute, optionDTO.value()))
+                    .toList();
 
             // Lưu Options trong một Query (tối ưu hơn so với save từng cái)
             savedOptions = attributeOptionRepository.saveAll(newOptions);
@@ -158,27 +194,14 @@ public class AttributeServiceImpl implements AttributeService {
 
         // 7. Map sang Response DTO (Sử dụng stream API)
         List<AttributeOptionCreateResponseDTO> optionResponses = savedOptions.stream()
-                .map(opt -> new AttributeOptionCreateResponseDTO(
-                        opt.getId(),
-                        opt.getValue(),
-                        opt.getScope(),
-                        opt.getStatus(),
-                        opt.getShop() != null ? opt.getShop().getId() : null // Trả về shopId
-                )).toList();
+                .map(AttributeOptionCreateResponseDTO::fromEntity)
+                .toList();
 
-        return new AttributeCreateResponseDTO(
-                savedAttribute.getId(),
-                savedAttribute.getName(),
-                savedAttribute.getCode(),
-                savedAttribute.getScope(),
-                savedAttribute.getStatus(),
-                savedAttribute.getShop() != null ? savedAttribute.getShop().getId() : null,
-                optionResponses
-        );
+        return AttributeCreateResponseDTO.fromEntity(savedAttribute, optionResponses);
     }
 
     @Override
-    public AttributeOptionInfoDTO findOrCreateAttributeOption(Long shopId, String attributeName, String optionValue) {
+    public AttributeOptionInfoDTO findOrCreateAttributeOption(Long shopId, String attributeName, String optionValue, AttributeType attributeType) {
         String cleanAttrName = attributeName.trim();
         String cleanOptValue = optionValue.trim();
         String attributeCode = NamingUtils.toConstantName(cleanAttrName);
@@ -193,84 +216,40 @@ public class AttributeServiceImpl implements AttributeService {
                             newAttr.setCode(attributeCode);
                             newAttr.setScope(AttributeScope.SHOP);
                             newAttr.setShop(shopRef);
-                            newAttr.setType(AttributeType.SPECIFICATION);
+                            newAttr.setType(attributeType);
                             newAttr.setStatus(AttributeStatus.ACTIVE);
                             return attributeRepository.save(newAttr);
                         }));
 
         // 2. Tìm AttributeOption theo Attribute và Value (Ignore Case)
         AttributeOption option = attributeOptionRepository.findByAttributeAndValueIgnoreCase(attribute, cleanOptValue)
-                .orElseGet(() -> {
-                    AttributeOption newOpt = new AttributeOption();
-                    newOpt.setAttribute(attribute);
-                    newOpt.setValue(cleanOptValue);
-                    newOpt.setScope(attribute.getScope());
-                    newOpt.setShop(attribute.getShop());
-                    newOpt.setStatus(AttributeStatus.ACTIVE);
-                    return attributeOptionRepository.save(newOpt);
-                });
+                .orElseGet(() -> attributeOptionRepository.save(AttributeOption.of(attribute, cleanOptValue)));
 
-        return new AttributeOptionInfoDTO(
-                option.getId(),
-                option.getValue(),
-                attribute.getId(),
-                attribute.getName(),
-                option.getShop() != null ? option.getShop().getId() : null,
-                option.getScope(),
-                option.getStatus()
-        );
+        return AttributeOptionInfoDTO.fromEntity(option);
     }
 
     // --- Helper Method ---
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<AttributeInfoDTO> findAttributeInfoById(UUID uuid) {
         return attributeRepository.findAttributeInfoById(uuid)
-                .map(
-                        view -> new AttributeInfoDTO(
-                                view.getId(),
-                                view.getName(),
-                                view.getCode(),
-                                view.getScope(),
-                                view.getShopId(),
-                                view.getStatus()
-                        )
-                );
+                .map(AttributeInfoDTO::fromView);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<AttributeOptionInfoDTO> findAttributeOptionInfoById(UUID uuid) {
         return attributeOptionRepository.findAttributeOptionInfoById(uuid)
-                .map(
-                        view -> new AttributeOptionInfoDTO(
-                                view.getId(),
-                                view.getValue(),
-                                view.getAttributeId(),
-                                view.getAttributeName(),
-                                view.getShopId(),
-                                view.getScope(),
-                                view.getStatus()
-                        )
-                );
+                .map(AttributeOptionInfoDTO::fromView);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AttributeOptionInfoDTO> findAllAttributeOptionsInfoByIds(List<UUID> ids) {
         return attributeOptionRepository.findAllByIdIn(ids)
                 .stream()
-                .map(
-                        view -> new AttributeOptionInfoDTO(
-                                view.getId(),
-                                view.getValue(),
-                                view.getAttributeId(),
-                                view.getAttributeName(),
-                                view.getShopId(),
-                                view.getScope(),
-                                view.getStatus()
-                        )
-                )
-                .collect(Collectors.toList());
+                .map(AttributeOptionInfoDTO::fromView)
+                .toList();
     }
-
-
 }
