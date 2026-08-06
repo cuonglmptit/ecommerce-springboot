@@ -39,8 +39,8 @@ public class CategoryAttribute {
     @Column(nullable = false)
     private Integer sortOrder = 0;
 
-    @Column(nullable = false)
-    private Boolean isFilterable = true;
+    @Column(name = "is_filterable", nullable = false)
+    private Boolean filterable = true;
 
 
     @Column(name = "filter_type")
@@ -82,11 +82,11 @@ public class CategoryAttribute {
     }
 
     public Boolean getFilterable() {
-        return isFilterable;
+        return filterable;
     }
 
     public void setFilterable(Boolean filterable) {
-        isFilterable = filterable;
+        this.filterable = filterable;
     }
 
     public FilterType getFilterType() {

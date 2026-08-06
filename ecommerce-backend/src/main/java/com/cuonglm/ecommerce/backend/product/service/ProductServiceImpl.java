@@ -1,13 +1,13 @@
 package com.cuonglm.ecommerce.backend.product.service;
 
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.attribute.service.AttributeService;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoDTO;
 import com.cuonglm.ecommerce.backend.category.service.CategoryService;
 import com.cuonglm.ecommerce.backend.core.exception.ConflictException;
 import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
-import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.service.MediaService;
@@ -21,11 +21,8 @@ import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
 import com.cuonglm.ecommerce.backend.product.repository.ProductMediaRepository;
 import com.cuonglm.ecommerce.backend.product.repository.ProductRepository;
 import com.cuonglm.ecommerce.backend.product.repository.ProductVariantRepository;
-import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.service.ShopService;
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoDTO;
-import com.cuonglm.ecommerce.backend.user.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +50,6 @@ public class ProductServiceImpl implements ProductService {
     public ProductServiceImpl(ProductRepository productRepository,
                               ProductVariantRepository productVariantRepository,
                               ProductMediaRepository productMediaRepository,
-                              UserService userService,
                               AttributeService attributeService,
                               CategoryService categoryService,
                               ShopService shopService,
@@ -161,7 +157,8 @@ public class ProductServiceImpl implements ProductService {
                     option = attributeService.findOrCreateAttributeOption(
                             currentShopId,
                             attrInput.attributeName(),
-                            attrInput.optionValue()
+                            attrInput.optionValue(),
+                            AttributeType.VARIATION
                     );
                 }
 

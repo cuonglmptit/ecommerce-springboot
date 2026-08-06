@@ -14,7 +14,23 @@ public record CategoryInfoDTO(
         Long id,
         String name,
         String description,
+        String path,
         Integer depth,
-        Integer sortOrder
+        Integer sortOrder,
+        Boolean hasChildren
 ) {
+    public static CategoryInfoDTO fromView(CategoryInfoView view) {
+        if (view == null) {
+            return null;
+        }
+        return new CategoryInfoDTO(
+                view.getId(),
+                view.getName(),
+                view.getDescription(),
+                view.getPath(),
+                view.getDepth(),
+                view.getSortOrder(),
+                view.getHasChildren()
+        );
+    }
 }
