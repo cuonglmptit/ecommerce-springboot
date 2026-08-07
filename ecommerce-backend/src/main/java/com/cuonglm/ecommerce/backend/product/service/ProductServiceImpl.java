@@ -77,7 +77,6 @@ public class ProductServiceImpl implements ProductService {
 
         // 2. Tạo & Lưu Product Cha
         Product product = new Product();
-        // 👈 Dùng getShopReference trực tiếp từ request.shopId(), không cần query findShopInfoById thừa thãi
         product.setShop(shopService.getShopReference(request.shopId()));
         product.setCategory(categoryService.getCategoryReference(categoryInfo.id()));
         product.setName(request.name());
@@ -98,35 +97,8 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        // 5. Map Media Response
-        List<ProductMediaCreateResponseDTO> mediaResponse = savedProduct.getMedia().stream()
-                .map(pm -> new ProductMediaCreateResponseDTO(
-                        pm.getId(),
-                        pm.getMedia().getUrl(),
-                        pm.isThumbnail(),
-                        pm.getSortOrder()
-                )).toList();
-
-        // 6. Map Variants Response trực tiếp từ List<AttributeSnapshot>
-        List<ProductVariantCreateResponseDTO> variantResponse = savedProduct.getVariants().stream()
-                .map(v -> new ProductVariantCreateResponseDTO(
-                        v.getId(),
-                        v.getSku(),
-                        v.getPrice(),
-                        v.getStockQuantity(),
-                        v.getAttributes().stream()
-                                .map(attr -> attr.attributeName() + ": " + attr.optionValue())
-                                .toList()
-                )).toList();
-
-        return new ProductCreateResponseDTO(
-                savedProduct.getId(),
-                savedProduct.getName(),
-                savedProduct.getDescription(),
-                savedProduct.getStatus().name(),
-                mediaResponse,
-                variantResponse
-        );
+        // 5.  Trả về Response DTO
+        return ProductCreateResponseDTO.fromEntity(savedProduct);
     }
 
     // --- Helper: Lưu Variant bằng JSONB Snapshot ---
@@ -177,12 +149,7 @@ public class ProductServiceImpl implements ProductService {
                 }
 
                 // Build Snapshot object (Giả định AttributeOptionInfoDTO có trường attributeName)
-                snapshots.add(new AttributeSnapshot(
-                        option.attributeId(),
-                        option.attributeName(),
-                        option.id(),
-                        option.value()
-                ));
+                snapshots.add(AttributeSnapshot.fromInfo(option));
             }
 
             // Gán danh sách snapshot vào Variant
@@ -244,12 +211,13 @@ public class ProductServiceImpl implements ProductService {
                 throw new PermissionDeniedException("Media ID " + mediaDTO.mediaId() + " không thuộc sở hữu của Shop hoặc người upload không phải chủ shop.");
             }
 
-            ProductMedia pm = new ProductMedia();
-            pm.setProduct(product);
-            pm.setVariant(variant);
-            pm.setMedia(mediaService.getMediaReference(mediaInfo.id()));
-            pm.setThumbnail(mediaDTO.isThumbnail());
-            pm.setSortOrder(mediaDTO.sortOrder());
+            ProductMedia pm = ProductMedia.of(
+                    product,
+                    variant,
+                    mediaService.getMediaReference(mediaInfo.id()),
+                    mediaDTO.isThumbnail(),
+                    mediaDTO.sortOrder()
+            );
 
             mediaList.add(pm);
         }

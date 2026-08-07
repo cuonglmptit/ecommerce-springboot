@@ -56,6 +56,16 @@ public class ProductMedia {
         }
     }
 
+    public static ProductMedia of(Product product, ProductVariant variant, Media media, boolean isThumbnail, int sortOrder) {
+        ProductMedia pm = new ProductMedia();
+        pm.setProduct(product);
+        pm.setVariant(variant);
+        pm.setMedia(media);
+        pm.setThumbnail(isThumbnail);
+        pm.setSortOrder(sortOrder);
+        return pm;
+    }
+
     //<editor-fold desc="Getters/Setters">
 
     public UUID getId() {
