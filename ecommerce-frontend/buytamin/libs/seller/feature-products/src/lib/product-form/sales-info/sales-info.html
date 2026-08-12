@@ -2,7 +2,7 @@
   <div class="variations-toggle-section">
     <label for="" class="section-title">Thông tin bán hàng</label>
 
-    @if (!hasVariants) {
+    @if (!hasVariants()) {
       <div class="enable-box">
         <button type="button" class="btn-enable" (click)="enableVariants()">
           + Thêm nhóm thuộc tính (Biến thể)
@@ -44,7 +44,6 @@
               <div class="input-field">
                 <label for="">Nhóm thuộc tính {{ attrIndex + 1 }}</label>
 
-                <!-- 🔄 THÊM list ĐỂ HIỂN THỊ AUTOCOMPLETE SẠCH SẼ -->
                 <input
                   type="text"
                   formControlName="name"
@@ -69,7 +68,6 @@
                       </div>
                     }
 
-                    <!-- 🔄 THÊM list AUTOCOMPLETE CHO OPTION THEO ĐÚNG NGỮ CẢNH ATTRIBUTE CHA -->
                     <input
                       type="text"
                       formControlName="name"
@@ -96,12 +94,12 @@
                 }
 
                 <div style="margin-top: 8px; font-size: 13px; font-weight: 500; color: #555;">
-                  Tỉ lệ quy đổi: <strong style="color: #ff5722;">{{ totalVariantsCount }}</strong> / {{maxVariantsAllowed}} biến thể tối đa.
+                  Tỉ lệ quy đổi: <strong style="color: #ff5722;">{{ totalVariantsCount() }}</strong> / {{ maxVariantsAllowed }} biến thể tối đa.
                 </div>
 
-                @if (totalVariantsCount >= maxVariantsAllowed) {
+                @if (totalVariantsCount() >= maxVariantsAllowed) {
                   <div style="color: #ff4d4f; font-size: 13px; margin-top: 5px; font-weight: bold;">
-                    ⚠️ Đã đạt giới hạn tối đa {{maxVariantsAllowed}} tổ hợp biến thể sản phẩm! Không thể thêm phân loại mới.
+                    ⚠️ Đã đạt giới hạn tối đa {{ maxVariantsAllowed }} tổ hợp biến thể sản phẩm! Không thể thêm phân loại mới.
                   </div>
                 }
 
@@ -138,10 +136,10 @@
         <table class="matrix-table" border="1" style="border-collapse: collapse; width: 100%;">
           <thead>
           <tr>
-            <th>{{ attribute1Name }}</th>
+            <th>{{ attribute1Name() }}</th>
             <th>Ảnh</th>
             @if (attributeDefsArray.length > 1) {
-              <th>{{ attribute2Name }}</th>
+              <th>{{ attribute2Name() }}</th>
             }
             <th>* Giá bán</th>
             <th>* Kho hàng</th>
@@ -152,11 +150,11 @@
           <tbody formArrayName="variants">
             @for (variantCtrl of variantsArray.controls; track variantCtrl.controls.sku.value + i; let i = $index) {
               <tr [formGroupName]="i">
-                @if (i % variation2OptionsLength === 0) {
-                  <td [attr.rowspan]="variation2OptionsLength">
+                @if (i % variation2OptionsLength() === 0) {
+                  <td [attr.rowspan]="variation2OptionsLength()">
                     {{ variantCtrl.controls.optionNames.value[0] || '-' }}
                   </td>
-                  <td [attr.rowspan]="variation2OptionsLength" style="text-align: center;">
+                  <td [attr.rowspan]="variation2OptionsLength()" style="text-align: center;">
                     <div class="upload-thumbnail-box">
                       <span class="icon-upload">📷</span>
                     </div>

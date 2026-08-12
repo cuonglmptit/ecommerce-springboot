@@ -6,5 +6,7 @@ export * from './lib/products/+state/products.actions';
 export * from './lib/products/products.models';
 export * from './lib/products/product-form.model';
 
-export { AttributeApi } from './lib/attributes/attribute-api';
+export * from './lib/attributes/attribute-api';
 export * from './lib/attributes/attribute.models';
+export * from './lib/categories/category.models';
+export * from './lib/categories/category-api';

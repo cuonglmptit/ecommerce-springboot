@@ -1,20 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { AttributeInfoDTO, AttributeOptionInfoDTO } from './attribute.models';
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
+import { AttributeInfo, AttributeOptionInfo } from './attribute.models';
+import { ApiResponse } from '@buytamin/shared/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AttributeApi {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/v1/attributes';
+  private readonly baseUrl = '/api/v1/attributes';
 
   /**
    * Tìm kiếm Tên Thuộc tính (Màu sắc, Kích thước...)
@@ -22,9 +17,9 @@ export class AttributeApi {
   searchAttributes(
     shopId: number,
     query: string,
-  ): Observable<AttributeInfoDTO[]> {
+  ): Observable<AttributeInfo[]> {
     return this.http
-      .get<ApiResponse<AttributeInfoDTO[]>>(`${this.baseUrl}/search`, {
+      .get<ApiResponse<AttributeInfo[]>>(`${this.baseUrl}/search`, {
         params: { shopId, query },
       })
       .pipe(map((res) => res.data || []));
@@ -37,9 +32,9 @@ export class AttributeApi {
     shopId: number,
     attributeName: string,
     query: string,
-  ): Observable<AttributeOptionInfoDTO[]> {
+  ): Observable<AttributeOptionInfo[]> {
     return this.http
-      .get<ApiResponse<AttributeOptionInfoDTO[]>>(
+      .get<ApiResponse<AttributeOptionInfo[]>>(
         `${this.baseUrl}/options/search`,
         {
           params: { shopId, attributeName, query },

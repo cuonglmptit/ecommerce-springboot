@@ -1,4 +1,4 @@
-export interface AttributeInfoDTO {
+export interface AttributeInfo {
   id: string;
   name: string;
   code: string;
@@ -7,7 +7,7 @@ export interface AttributeInfoDTO {
   status: string;
 }
 
-export interface AttributeOptionInfoDTO {
+export interface AttributeOptionInfo {
   id: string;
   value: string;
   attributeId: string;

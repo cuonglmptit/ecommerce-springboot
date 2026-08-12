@@ -4,13 +4,12 @@ import { CreateProductRequest, ProductsEntity } from './products.models';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root', // Đăng ký global tự động cho toàn app
+  providedIn: 'root',
 })
 export class ProductApi {
   private readonly http = inject(HttpClient);
 
-  // URL endpoint tới backend Spring Boot của bạn
-  private readonly baseUrl = 'http://localhost:8080/api/v1/products';
+  private readonly baseUrl = '/api/v1/products';
 
   /**
    * API Tạo mới sản phẩm
@@ -20,7 +19,7 @@ export class ProductApi {
   }
 
   /**
-   * API Lấy danh sách sản phẩm (dùng cho hành động init)
+   * API Lấy danh sách sản phẩm
    */
   getProducts(): Observable<ProductsEntity[]> {
     return this.http.get<ProductsEntity[]>(this.baseUrl);
