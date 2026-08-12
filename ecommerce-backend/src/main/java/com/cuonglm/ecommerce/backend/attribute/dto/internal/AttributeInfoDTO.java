@@ -28,7 +28,7 @@ public record AttributeInfoDTO(
                 view.getName(),
                 view.getCode(),
                 view.getScope(),
-                view.getShopId(),
+                (view.getShop() != null) ? view.getShop().getId() : null,
                 view.getStatus()
         );
     }

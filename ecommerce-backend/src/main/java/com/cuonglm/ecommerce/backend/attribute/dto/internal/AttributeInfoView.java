@@ -21,7 +21,11 @@ public interface AttributeInfoView {
 
     AttributeScope getScope();
 
-    Long getShopId();
+    ShopSummaryInfoView getShop();
+
+    interface ShopSummaryInfoView {
+        Long getId();
+    }
 
     AttributeStatus getStatus();
 }
