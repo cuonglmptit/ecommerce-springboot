@@ -2,10 +2,10 @@
   <div class="form-wrapper">
 
     <h1>Thông tin cơ bản</h1>
-    <seller-basic-info></seller-basic-info>
+    <seller-basic-info (categoryChanged)="onCategoryChanged($event)"></seller-basic-info>
 
     <h1>Specification</h1>
-    <seller-product-specification></seller-product-specification>
+    <seller-product-specification [attributes]="specAttributes()"></seller-product-specification>
 
     <h1>Mô tả sản phẩm</h1>
     <seller-product-description></seller-product-description>

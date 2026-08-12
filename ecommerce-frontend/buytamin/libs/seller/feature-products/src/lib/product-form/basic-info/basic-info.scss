@@ -1,0 +1,68 @@
+.basic-info-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 4px;
+
+  .form-row {
+    display: flex;
+    align-items: center;
+
+    .field-label {
+      width: 140px;
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+
+      &.required::before {
+        content: '* ';
+        color: #ff4d4f;
+      }
+    }
+
+    .field-control {
+      flex: 1;
+
+      input[type='text'] {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        outline: none;
+
+        &:focus {
+          border-color: #ee4d2d;
+        }
+      }
+
+      .category-selector-input {
+        position: relative;
+        cursor: pointer;
+
+        input {
+          cursor: pointer;
+          background-color: #fff;
+          padding-right: 36px;
+          text-overflow: ellipsis;
+        }
+
+        .edit-icon {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 14px;
+          color: #8c8c8c;
+          pointer-events: none;
+        }
+
+        &:hover input {
+          border-color: #ee4d2d;
+        }
+      }
+    }
+  }
+}

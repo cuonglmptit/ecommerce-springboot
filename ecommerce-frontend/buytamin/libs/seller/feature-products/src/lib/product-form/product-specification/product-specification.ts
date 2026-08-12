@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 import {
   ControlContainer,
   FormGroupDirective,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { CategoryAttributeInfo } from '@buytamin/seller/data-access';
 
 @Component({
   selector: 'seller-product-specification',
@@ -14,4 +15,6 @@ import {
     { provide: ControlContainer, useExisting: FormGroupDirective }, // ◄── Copy dòng này qua toàn bộ các con còn lại
   ],
 })
-export class ProductSpecification {}
+export class ProductSpecification {
+  attributes = input<CategoryAttributeInfo[]>([]);
+}

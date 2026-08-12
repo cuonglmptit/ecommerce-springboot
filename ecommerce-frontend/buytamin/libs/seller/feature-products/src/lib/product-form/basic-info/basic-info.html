@@ -1,12 +1,38 @@
-<div [formGroup]="basicInfoGroup">
-  <div>Hình ảnh sản phẩm</div>
-  <input type="file" name="" id="">
-  <div>Ảnh bìa sản phẩm</div>
-  <input type="file" name="" id="">
-  <div>Video sản phẩm</div>
-  <input type="file" name="" id="">
-  <div>Tên sản phẩm</div>
-  <input type="text" formControlName="name">
-  <div>Ngành hàng</div>
-  <input type="number" formControlName="categoryId" style="width: 10px; height: 10px">
+<div [formGroup]="basicInfoGroup" class="basic-info-form">
+  <div class="form-row">
+    <label for="" class="field-label required">Tên sản phẩm</label>
+    <div class="field-control">
+      <input
+        type="text"
+        formControlName="name"
+        placeholder="Nhập tên sản phẩm (Ví dụ: Áo Thun Nam Cotton Form Rộng...)"
+      />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label for="" class="field-label required">Ngành hàng</label>
+    <div class="field-control">
+      <!-- Input Read-only kiểu Shopee click để mở Modal -->
+      <div class="category-selector-input"
+           role="button"
+           tabindex="0"
+           (keydown.enter)="openCategoryModal()"
+           (click)="openCategoryModal()">
+        <input
+          type="text"
+          readonly
+          [value]="selectedCategoryPathDisplay()"
+          placeholder="Please set category"
+        />
+        <span class="edit-icon">✏️</span>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Modal chọn ngành hàng với Signal Two-Way Binding [(visible)] -->
+<seller-category-selector
+  [(visible)]="isCategoryModalVisible"
+  (categoryConfirmed)="onCategoryConfirmed($event)"
+></seller-category-selector>

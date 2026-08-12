@@ -1,0 +1,80 @@
+@if (visible()) {
+  <div class="modal-backdrop">
+    <div class="modal-dialog">
+      <!-- Header -->
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Category</h3>
+        <button type="button" class="btn-close" (click)="close()">✕</button>
+      </div>
+
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            [formControl]="searchControl"
+            placeholder="Please input at least 1 character"
+          />
+        </div>
+      </div>
+
+      <!-- Cascading Multi-Column List -->
+      @if (!isSearching()) {
+        <div class="cascading-container">
+          @for (col of columns(); track $index; let colIdx = $index) {
+            <div class="category-column">
+              @for (item of col; track item.id) {
+                <div
+                  class="category-item"
+                  [class.active]="isSelected(colIdx, item.id)"
+                  (click)="selectCategory(colIdx, item)"
+                >
+                  <span class="category-name">{{ item.name }}</span>
+                  @if (item.hasChildren) {
+                    <span class="arrow-icon">›</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Search Results List -->
+        <div class="search-results-container">
+          @for (result of searchResults(); track result.item.id) {
+            <div
+              class="search-result-item"
+              [class.active]="isSelected(0, result.item.id)"
+              (click)="selectSearchResult(result)"
+            >
+              <span>{{ result.displayPath }}</span>
+            </div>
+          } @empty {
+            <div class="empty-search">No categories found matching keyword.</div>
+          }
+        </div>
+      }
+
+      <!-- Footer & Path Preview -->
+      <div class="modal-footer">
+        <div class="selection-preview">
+          <span class="preview-label">The currently selected : </span>
+          <span class="preview-path">{{ currentPathDisplay() || 'None' }}</span>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" class="btn-cancel" (click)="close()">Cancel</button>
+          <button
+            type="button"
+            class="btn-confirm"
+            [disabled]="!isLeafSelected()"
+            (click)="confirm()"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
