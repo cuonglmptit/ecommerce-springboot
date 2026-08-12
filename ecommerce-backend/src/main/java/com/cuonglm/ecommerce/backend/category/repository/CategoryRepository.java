@@ -46,4 +46,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         ORDER BY c.depth ASC, c.sortOrder ASC
     """)
     List<CategoryInfoView> searchCategories(@Param("keyword") String keyword, @Param("status") BasicStatus status);
+
+    @Query("""
+        SELECT c FROM Category c
+        WHERE c.status = :status
+        ORDER BY c.depth ASC, c.sortOrder ASC
+    """)
+    List<CategoryInfoView> findAllActiveCategories(@Param("status") BasicStatus status);
 }

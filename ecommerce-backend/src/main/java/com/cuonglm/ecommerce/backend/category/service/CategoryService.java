@@ -4,6 +4,7 @@ import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoDTO;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
+import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryTreeNodeDTO;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
 
 import java.util.List;
@@ -27,4 +28,6 @@ public interface CategoryService {
     List<CategoryInfoView> searchCategories(String keyword);
 
     List<CategoryAttributeInfoView> getCategoryAttributes(Long categoryId, AttributeType type);
+
+    List<CategoryTreeNodeDTO> getCategoryTree();
 }

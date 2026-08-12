@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.category.controller;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
 import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
+import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryTreeNodeDTO;
 import com.cuonglm.ecommerce.backend.category.service.CategoryService;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,11 @@ public class CategoryController {
 
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
+    }
+
+    @GetMapping("/tree")
+    public ResponseEntity<ApiResponse<List<CategoryTreeNodeDTO>>> getCategoryTree() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getCategoryTree()));
     }
 
     @GetMapping("/roots")

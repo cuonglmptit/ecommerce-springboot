@@ -27,6 +27,12 @@ public interface CategoryInfoView {
 
     Integer getSortOrder();
 
+    ParentSummaryInfoView getParent();
+
+    interface ParentSummaryInfoView {
+        Long getId();
+    }
+
     // Map danh sách con (ẩn khỏi JSON) để tính toán node lá
     @JsonIgnore
     Collection<ChildSummaryInfoView> getChildren();

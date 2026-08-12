@@ -72,7 +72,7 @@ public class DataInitializer {
                                AttributeOptionRepository attributeOptionRepository,
                                CategoryAttributeRepository categoryAttributeRepository,
                                ShopRepository shopRepository,
-                               MediaRepository mediaRepository) { // 👈 THÊM MediaRepository
+                               MediaRepository mediaRepository) {
         return args -> {
 
             // ----------------------------
@@ -468,18 +468,85 @@ public class DataInitializer {
         }
 
         // 6. Categories (Cây phân cấp)
-        Category fashionCategory = categoryRepository.findByName("Thời Trang").orElseGet(() -> {
-            Category cat = createCategory(1L, "Thời Trang", "Các loại sản phẩm thời trang.", "/1/", 0, null);
+        // =========================================================================
+
+        // --- CẤP 0 (ROOTS) ---
+        Category fashionCategory = categoryRepository.findByName("Thời Trang Nam").orElseGet(() -> {
+            Category cat = createCategory(1L, "Thời Trang Nam", "Các loại sản phẩm thời trang nam.", "/1/", 0, null);
             return categoryRepository.save(cat);
         });
 
-        Category shirtCategory = categoryRepository.findByName("Áo Sơ Mi").orElseGet(() -> {
-            Category cat = createCategory(2L, "Áo Sơ Mi", "Áo sơ mi nam nữ các loại.", "/1/2/", 1, fashionCategory);
+        Category electronicsCategory = categoryRepository.findByName("Thiết Bị Điện Tử").orElseGet(() -> {
+            Category cat = createCategory(2L, "Thiết Bị Điện Tử", "Điện thoại, máy tính, thiết bị nghe nhìn.", "/2/", 0, null);
             return categoryRepository.save(cat);
         });
 
+        Category homeApplianceCategory = categoryRepository.findByName("Thiết Bị Gia Dụng").orElseGet(() -> {
+            Category cat = createCategory(3L, "Thiết Bị Gia Dụng", "Đồ gia dụng lớn nhỏ cho gia đình.", "/3/", 0, null);
+            return categoryRepository.save(cat);
+        });
+
+        // Enterprise Fallback: Danh mục Khác ở cấp Gốc
+        Category globalOthersCategory = categoryRepository.findByName("Danh Mục Khác").orElseGet(() -> {
+            Category cat = createCategory(4L, "Danh Mục Khác", "Các sản phẩm chưa phân loại thuộc ngành hàng khác.", "/4/", 0, null);
+            return categoryRepository.save(cat);
+        });
+
+
+        // --- CẤP 1 (CHILDREN OF THỜI TRANG NAM) ---
+        Category shirtCategory = categoryRepository.findByName("Áo Nam").orElseGet(() -> {
+            Category cat = createCategory(5L, "Áo Nam", "Áo sơ mi, áo thun, áo khoác nam.", "/1/5/", 1, fashionCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category pantsCategory = categoryRepository.findByName("Quần Nam").orElseGet(() -> {
+            Category cat = createCategory(6L, "Quần Nam", "Quần jeans, quần tây, quần đùi nam.", "/1/6/", 1, fashionCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category fashionOthersCategory = categoryRepository.findByName("Thời Trang Nam Khác").orElseGet(() -> {
+            Category cat = createCategory(7L, "Thời Trang Nam Khác", "Các sản phẩm thời trang nam khác.", "/1/7/", 1, fashionCategory);
+            return categoryRepository.save(cat);
+        });
+
+
+        // --- CẤP 2 (LEAF NODES OF ÁO NAM) ---
         Category longSleeveShirt = categoryRepository.findByName("Sơ Mi Dài Tay").orElseGet(() -> {
-            Category cat = createCategory(3L, "Sơ Mi Dài Tay", "Áo sơ mi dài tay.", "/1/2/3/", 2, shirtCategory);
+            Category cat = createCategory(8L, "Sơ Mi Dài Tay", "Áo sơ mi dài tay công sở, kiểu.", "/1/5/8/", 2, shirtCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category tShirtCategory = categoryRepository.findByName("Áo Thun Nam").orElseGet(() -> {
+            Category cat = createCategory(9L, "Áo Thun Nam", "Áo thun cổ tròn, polo nam.", "/1/5/9/", 2, shirtCategory);
+            return categoryRepository.save(cat);
+        });
+
+
+        // --- CẤP 1 & 2 (CHILDREN OF THIẾT BỊ ĐIỆN TỬ) ---
+        Category mobileCategory = categoryRepository.findByName("Điện Thoại & Phụ Kiện").orElseGet(() -> {
+            Category cat = createCategory(10L, "Điện Thoại & Phụ Kiện", "Điện thoại thông minh, tai nghe, sạc dự phòng.", "/2/10/", 1, electronicsCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category smartphoneCategory = categoryRepository.findByName("Điện Thoại Di Động").orElseGet(() -> {
+            Category cat = createCategory(11L, "Điện Thoại Di Động", "Smartphone iOS, Android.", "/2/10/11/", 2, mobileCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category electronicsOthersCategory = categoryRepository.findByName("Thiết Bị Điện Tử Khác").orElseGet(() -> {
+            Category cat = createCategory(12L, "Thiết Bị Điện Tử Khác", "Các thiết bị điện tử kỹ thuật số khác.", "/2/12/", 1, electronicsCategory);
+            return categoryRepository.save(cat);
+        });
+
+
+        // --- CẤP 1 & 2 (CHILDREN OF THIẾT BỊ GIA DỤNG) ---
+        Category largeApplianceCategory = categoryRepository.findByName("Đồ Gia Dụng Lớn").orElseGet(() -> {
+            Category cat = createCategory(13L, "Đồ Gia Dụng Lớn", "Tủ lạnh, máy giặt, máy sấy.", "/3/13/", 1, homeApplianceCategory);
+            return categoryRepository.save(cat);
+        });
+
+        Category coolingCategory = categoryRepository.findByName("Quạt & Máy Làm Mát").orElseGet(() -> {
+            Category cat = createCategory(14L, "Quạt & Máy Làm Mát", "Quạt đứng, quạt hơi nước, quạt trần.", "/3/13/14/", 2, largeApplianceCategory);
             return categoryRepository.save(cat);
         });
 
