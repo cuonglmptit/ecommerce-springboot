@@ -16,6 +16,8 @@ import {
   AttributeDefinitionFormGroup,
   AttributeInfo,
   AttributeOptionInfo,
+  CategoryApi,
+  CategoryAttributeInfo,
   VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
@@ -32,14 +34,12 @@ import {
   imports: [ReactiveFormsModule],
   templateUrl: './sales-info.html',
   styleUrl: './sales-info.scss',
-  viewProviders: [
-    { provide: ControlContainer, useExisting: FormGroupDirective },
-  ],
 })
 export class SalesInfo implements OnInit {
   private readonly formDataService = inject(ProductFormData);
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly attributeApi = inject(AttributeApi);
+  private readonly categoryApi = inject(CategoryApi);
 
   private static readonly maxVariantsAllowed = 50;
   private static readonly maxAttributesAllowed = 2;
@@ -93,9 +93,9 @@ export class SalesInfo implements OnInit {
   });
 
   protected attributeSuggestions = signal<AttributeInfo[][]>([[], []]);
-  protected optionSuggestions = signal<
-    Record<string, AttributeOptionInfo[]>
-  >({});
+  protected optionSuggestions = signal<Record<string, AttributeOptionInfo[]>>(
+    {},
+  );
 
   private readonly attrSearch$ = new Subject<{
     index: number;
@@ -106,6 +106,8 @@ export class SalesInfo implements OnInit {
     optIndex: number;
     query: string;
   }>();
+
+  protected readonly categoryVariations = signal<CategoryAttributeInfo[]>([]);
 
   ngOnInit() {
     if (!this.hasVariants() && this.variantsArray.length === 0) {
@@ -159,6 +161,37 @@ export class SalesInfo implements OnInit {
       .subscribe(({ key, data }) => {
         this.optionSuggestions.update((prev) => ({ ...prev, [key]: data }));
       });
+
+    this.form.controls.basicInfo.controls.categoryId.valueChanges.subscribe(
+      (catId) => {
+        if (catId) {
+          this.loadCategoryVariations(catId);
+        }
+      },
+    );
+  }
+
+  private loadCategoryVariations(categoryId: number) {
+    this.categoryApi.getCategoryAttributes(categoryId, 'VARIATION').subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.categoryVariations.set(res.data);
+          console.log(res);
+          console.log(this.categoryVariations());
+        }
+      },
+    });
+  }
+
+  addQuickVariation(attr: AttributeInfo) {
+    this.addAttributeDefinition(); // Tạo nhóm thuộc tính mới
+    const lastIndex = this.attributeDefsArray.length - 1;
+    const group = this.attributeDefsArray.at(lastIndex);
+
+    if (group) {
+      group.controls.id.setValue(attr.id);
+      group.controls.name.setValue(attr.name); // Tự điền tên "Màu sắc"
+    }
   }
 
   onAttributeNameInput(attrIndex: number, event: Event) {

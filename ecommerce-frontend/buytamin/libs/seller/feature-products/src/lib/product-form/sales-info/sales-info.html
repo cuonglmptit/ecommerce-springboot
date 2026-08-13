@@ -37,7 +37,20 @@
             ✕ Tắt chế độ biến thể & Xóa dữ liệu cũ
           </button>
         </div>
-
+        @if (categoryVariations().length > 0) {
+          <div class="quick-suggestions-bar">
+            <span class="label">Gợi ý phân loại cho ngành hàng này:</span>
+            @for (item of categoryVariations(); track item.id) {
+              <button
+                type="button"
+                class="btn-chip"
+                (click)="addQuickVariation(item.attribute)"
+              >
+                + {{ item.attribute.name }}
+              </button>
+            }
+          </div>
+        }
         <div formArrayName="attributeDefinitions" class="attribute-definitions-list">
           @for (attrCtrl of attributeDefsArray.controls; track attrCtrl.controls.id.value; let attrIndex = $index) {
             <div [formGroupName]="attrIndex" class="attribute-group-card" style="margin-bottom: 20px; padding: 15px; border: 1px dashed #ccc;">

@@ -10,8 +10,5 @@ import {
   imports: [ReactiveFormsModule],
   templateUrl: './others.html',
   styleUrl: './others.scss',
-  viewProviders: [
-    { provide: ControlContainer, useExisting: FormGroupDirective },
-  ],
 })
 export class Others {}

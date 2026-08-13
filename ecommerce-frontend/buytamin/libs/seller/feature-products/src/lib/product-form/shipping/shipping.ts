@@ -10,8 +10,5 @@ import {
   imports: [ReactiveFormsModule],
   templateUrl: './shipping.html',
   styleUrl: './shipping.scss',
-  viewProviders: [
-    { provide: ControlContainer, useExisting: FormGroupDirective },
-  ],
 })
 export class Shipping {}
