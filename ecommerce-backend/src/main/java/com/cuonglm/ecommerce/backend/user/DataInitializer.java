@@ -6,6 +6,7 @@ import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeOptionRepository;
 import com.cuonglm.ecommerce.backend.attribute.repository.AttributeRepository;
 import com.cuonglm.ecommerce.backend.auth.service.registeredclient.DatabaseRegisteredClientRepository;
@@ -390,57 +391,19 @@ public class DataInitializer {
                                  CategoryAttributeRepository categoryAttributeRepository,
                                  ShopRepository shopRepository) {
 
-        System.out.println("⏳ Initializing Catalog Data (Categories & Attributes)...");
+        System.out.println("⏳ Initializing FULL Catalog Data (Restoring All Categories & Attributes)...");
 
-        // 1. Khởi tạo/Tìm Shop mặc định (cần cho Attribute Scope SHOP)
+        // -------------------------------------------------------------------------
+        // 1. Khởi tạo/Tìm Shops
+        // -------------------------------------------------------------------------
         Shop defaultShop = shopRepository.findById(1L).orElseGet(() -> {
-            Shop shop = new Shop(); // Giả định Shop entity có constructor không tham số
+            Shop shop = new Shop();
             shop.setName("Shop Demo A");
-            // ----------------------------------------------------
-            // 👈 BỔ SUNG: SET CÁC TRƯỜNG BẮT BUỘC
             User admin = new User(); admin.setId(2L);
             shop.setOwner(admin);
             shop.setStatus(ShopStatus.ACTIVE);
-            // ----------------------------------------------------
             return shopRepository.save(shop);
         });
-
-        // 2. Attribute: Màu Sắc (GLOBAL Scope)
-        Attribute colorAttribute = attributeRepository.findByCode("MAU_SAC").orElseGet(() -> {
-            Attribute attr = createAttribute("Màu Sắc", "MAU_SAC", AttributeScope.GLOBAL, null);
-            return attributeRepository.save(attr);
-        });
-
-        // 3. Attribute Options cho Màu Sắc (GLOBAL)
-        if (attributeOptionRepository.findByAttributeAndValue(colorAttribute, "Đỏ").isEmpty()) {
-            AttributeOption colorRed = createAttributeOption(colorAttribute, "Đỏ", AttributeScope.GLOBAL, null);
-            colorRed.setId(UUID.fromString("00000000-0000-0000-0000-000000000001")); // ID mặc định
-            attributeOptionRepository.save(colorRed);
-        }
-        if (attributeOptionRepository.findByAttributeAndValue(colorAttribute, "Xanh Dương").isEmpty()) {
-            AttributeOption colorBlue = createAttributeOption(colorAttribute, "Xanh Dương", AttributeScope.GLOBAL, null);
-            colorBlue.setId(UUID.fromString("00000000-0000-0000-0000-000000000002")); // ID mặc định
-            attributeOptionRepository.save(colorBlue);
-        }
-
-        // 4. Attribute: Kích Cỡ (SHOP Scope)
-        Attribute sizeAttribute = attributeRepository.findByShopIdAndCode(defaultShop.getId(), "KICH_CO").orElseGet(() -> {
-            Attribute attr = createAttribute("Kích Cỡ", "KICH_CO", AttributeScope.SHOP, defaultShop);
-            return attributeRepository.save(attr);
-        });
-
-        // 5. Attribute Options cho Kích Cỡ (SHOP)
-        if (attributeOptionRepository.findByAttributeAndValue(sizeAttribute, "S").isEmpty()) {
-            AttributeOption sizeS = createAttributeOption(sizeAttribute, "S", AttributeScope.SHOP, defaultShop);
-            sizeS.setId(UUID.fromString("00000000-0000-0000-0000-000000000003")); // ID mặc định
-            attributeOptionRepository.save(sizeS);
-        }
-        if (attributeOptionRepository.findByAttributeAndValue(sizeAttribute, "M").isEmpty()) {
-            AttributeOption sizeM = createAttributeOption(sizeAttribute, "M", AttributeScope.SHOP, defaultShop);
-            sizeM.setId(UUID.fromString("00000000-0000-0000-0000-000000000004")); // ID mặc định
-            attributeOptionRepository.save(sizeM);
-        }
-
 
         Shop secondShop = shopRepository.findById(2L).orElseGet(() -> {
             Shop shop = new Shop();
@@ -451,115 +414,242 @@ public class DataInitializer {
             return shopRepository.save(shop);
         });
 
-        Attribute shippingMethodAttribute = attributeRepository.findByShopIdAndCode(secondShop.getId(), "CHIEU_DAI").orElseGet(() -> {
-            Attribute attr = createAttribute("Chiều dài", "CHIEU_DAI", AttributeScope.SHOP, secondShop);
+        // -------------------------------------------------------------------------
+        // 2. Thuộc tính BIẾN THỂ (VARIATION Attributes)
+        // -------------------------------------------------------------------------
+        Attribute colorAttribute = attributeRepository.findByCode("MAU_SAC").orElseGet(() -> {
+            Attribute attr = createAttribute("Màu Sắc", "MAU_SAC", AttributeScope.GLOBAL, AttributeType.VARIATION, null);
             return attributeRepository.save(attr);
         });
 
-        if (attributeOptionRepository.findByAttributeAndValue(shippingMethodAttribute, "50CM").isEmpty()) {
-            AttributeOption shippingFast = createAttributeOption(shippingMethodAttribute, "50CM", AttributeScope.SHOP, secondShop);
-            shippingFast.setId(UUID.fromString("00000000-0000-0000-0000-000000000008"));
-            attributeOptionRepository.save(shippingFast);
-        }
-        if (attributeOptionRepository.findByAttributeAndValue(shippingMethodAttribute, "100CM").isEmpty()) {
-            AttributeOption shippingStandard = createAttributeOption(shippingMethodAttribute, "100CM", AttributeScope.SHOP, secondShop);
-            shippingStandard.setId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
-            attributeOptionRepository.save(shippingStandard);
-        }
+        Attribute sizeAttribute = attributeRepository.findByShopIdAndCode(defaultShop.getId(), "KICH_CO").orElseGet(() -> {
+            Attribute attr = createAttribute("Kích Cỡ (Shop)", "KICH_CO", AttributeScope.SHOP, AttributeType.VARIATION, defaultShop);
+            return attributeRepository.save(attr);
+        });
 
-        // 6. Categories (Cây phân cấp)
-        // =========================================================================
+        Attribute sizeGlobalAttribute = attributeRepository.findByCode("KICH_THUOC").orElseGet(() -> {
+            Attribute attr = createAttribute("Kích Thước", "KICH_THUOC", AttributeScope.GLOBAL, AttributeType.VARIATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute storageVarAttribute = attributeRepository.findByCode("DUNG_LUONG_VAR").orElseGet(() -> {
+            Attribute attr = createAttribute("Dung Lượng Bộ Nhớ", "DUNG_LUONG_VAR", AttributeScope.GLOBAL, AttributeType.VARIATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute shippingMethodAttribute = attributeRepository.findByShopIdAndCode(secondShop.getId(), "CHIEU_DAI").orElseGet(() -> {
+            Attribute attr = createAttribute("Chiều dài", "CHIEU_DAI", AttributeScope.SHOP, AttributeType.VARIATION, secondShop);
+            return attributeRepository.save(attr);
+        });
+
+        // Options cho VARIATION
+        createOptionIfAbsent(attributeOptionRepository, colorAttribute, "Đỏ", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000001");
+        createOptionIfAbsent(attributeOptionRepository, colorAttribute, "Xanh Dương", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000002");
+        createOptionIfAbsent(attributeOptionRepository, colorAttribute, "Đen", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000005");
+
+        createOptionIfAbsent(attributeOptionRepository, sizeAttribute, "S", AttributeScope.SHOP, defaultShop, "00000000-0000-0000-0000-000000000003");
+        createOptionIfAbsent(attributeOptionRepository, sizeAttribute, "M", AttributeScope.SHOP, defaultShop, "00000000-0000-0000-0000-000000000004");
+
+        createOptionIfAbsent(attributeOptionRepository, sizeGlobalAttribute, "S", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000060");
+        createOptionIfAbsent(attributeOptionRepository, sizeGlobalAttribute, "M", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000061");
+        createOptionIfAbsent(attributeOptionRepository, sizeGlobalAttribute, "L", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000062");
+        createOptionIfAbsent(attributeOptionRepository, sizeGlobalAttribute, "XL", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000063");
+
+        createOptionIfAbsent(attributeOptionRepository, storageVarAttribute, "128GB", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000070");
+        createOptionIfAbsent(attributeOptionRepository, storageVarAttribute, "256GB", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000071");
+        createOptionIfAbsent(attributeOptionRepository, storageVarAttribute, "512GB", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000072");
+
+        createOptionIfAbsent(attributeOptionRepository, shippingMethodAttribute, "50CM", AttributeScope.SHOP, secondShop, "00000000-0000-0000-0000-000000000008");
+        createOptionIfAbsent(attributeOptionRepository, shippingMethodAttribute, "100CM", AttributeScope.SHOP, secondShop, "00000000-0000-0000-0000-000000000009");
+
+
+        // -------------------------------------------------------------------------
+        // 3. Thuộc tính KỸ THUẬT (SPECIFICATION Attributes)
+        // -------------------------------------------------------------------------
+        Attribute brandAttribute = attributeRepository.findByCode("THUONG_HIEU").orElseGet(() -> {
+            Attribute attr = createAttribute("Thương Hiệu", "THUONG_HIEU", AttributeScope.GLOBAL, AttributeType.SPECIFICATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute materialAttribute = attributeRepository.findByCode("CHAT_LIEU").orElseGet(() -> {
+            Attribute attr = createAttribute("Chất Liệu", "CHAT_LIEU", AttributeScope.GLOBAL, AttributeType.SPECIFICATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute originAttribute = attributeRepository.findByCode("XUAT_XU").orElseGet(() -> {
+            Attribute attr = createAttribute("Xuất Xứ", "XUAT_XU", AttributeScope.GLOBAL, AttributeType.SPECIFICATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute storageSpecAttribute = attributeRepository.findByCode("DUNG_LUONG").orElseGet(() -> {
+            Attribute attr = createAttribute("Dung Lượng Mặc Định", "DUNG_LUONG", AttributeScope.GLOBAL, AttributeType.SPECIFICATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        Attribute powerAttribute = attributeRepository.findByCode("CONG_SUAT").orElseGet(() -> {
+            Attribute attr = createAttribute("Công Suất", "CONG_SUAT", AttributeScope.GLOBAL, AttributeType.SPECIFICATION, null);
+            return attributeRepository.save(attr);
+        });
+
+        // Options cho SPECIFICATION Attributes
+        createOptionIfAbsent(attributeOptionRepository, brandAttribute, "Nike", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000010");
+        createOptionIfAbsent(attributeOptionRepository, brandAttribute, "Adidas", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000011");
+        createOptionIfAbsent(attributeOptionRepository, brandAttribute, "Apple", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000012");
+        createOptionIfAbsent(attributeOptionRepository, brandAttribute, "Samsung", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000013");
+        createOptionIfAbsent(attributeOptionRepository, brandAttribute, "No Brand / OEM", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000014");
+
+        createOptionIfAbsent(attributeOptionRepository, materialAttribute, "Cotton 100%", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000020");
+        createOptionIfAbsent(attributeOptionRepository, materialAttribute, "Polyester", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000021");
+        createOptionIfAbsent(attributeOptionRepository, materialAttribute, "Lụa / Silk", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000022");
+        createOptionIfAbsent(attributeOptionRepository, materialAttribute, "Kaki", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000023");
+
+        createOptionIfAbsent(attributeOptionRepository, originAttribute, "Việt Nam", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000030");
+        createOptionIfAbsent(attributeOptionRepository, originAttribute, "Trung Quốc", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000031");
+        createOptionIfAbsent(attributeOptionRepository, originAttribute, "Hàn Quốc", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000032");
+
+        createOptionIfAbsent(attributeOptionRepository, storageSpecAttribute, "64GB", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000040");
+        createOptionIfAbsent(attributeOptionRepository, storageSpecAttribute, "128GB", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000041");
+
+        createOptionIfAbsent(attributeOptionRepository, powerAttribute, "45W", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000050");
+        createOptionIfAbsent(attributeOptionRepository, powerAttribute, "60W", AttributeScope.GLOBAL, null, "00000000-0000-0000-0000-000000000051");
+
+
+        // -------------------------------------------------------------------------
+        // 4. TOÀN BỘ CÂY DANH MỤC (Restoring 100% All 14 Categories)
+        // -------------------------------------------------------------------------
 
         // --- CẤP 0 (ROOTS) ---
-        Category fashionCategory = categoryRepository.findByName("Thời Trang Nam").orElseGet(() -> {
-            Category cat = createCategory(1L, "Thời Trang Nam", "Các loại sản phẩm thời trang nam.", "/1/", 0, null);
-            return categoryRepository.save(cat);
-        });
+        Category fashionCategory = categoryRepository.findByName("Thời Trang Nam").orElseGet(() ->
+                categoryRepository.save(createCategory(1L, "Thời Trang Nam", "Các loại sản phẩm thời trang nam.", "/1/", 0, null))
+        );
 
-        Category electronicsCategory = categoryRepository.findByName("Thiết Bị Điện Tử").orElseGet(() -> {
-            Category cat = createCategory(2L, "Thiết Bị Điện Tử", "Điện thoại, máy tính, thiết bị nghe nhìn.", "/2/", 0, null);
-            return categoryRepository.save(cat);
-        });
+        Category electronicsCategory = categoryRepository.findByName("Thiết Bị Điện Tử").orElseGet(() ->
+                categoryRepository.save(createCategory(2L, "Thiết Bị Điện Tử", "Điện thoại, máy tính, thiết bị nghe nhìn.", "/2/", 0, null))
+        );
 
-        Category homeApplianceCategory = categoryRepository.findByName("Thiết Bị Gia Dụng").orElseGet(() -> {
-            Category cat = createCategory(3L, "Thiết Bị Gia Dụng", "Đồ gia dụng lớn nhỏ cho gia đình.", "/3/", 0, null);
-            return categoryRepository.save(cat);
-        });
+        Category homeApplianceCategory = categoryRepository.findByName("Thiết Bị Gia Dụng").orElseGet(() ->
+                categoryRepository.save(createCategory(3L, "Thiết Bị Gia Dụng", "Đồ gia dụng lớn nhỏ cho gia đình.", "/3/", 0, null))
+        );
 
-        // Enterprise Fallback: Danh mục Khác ở cấp Gốc
-        Category globalOthersCategory = categoryRepository.findByName("Danh Mục Khác").orElseGet(() -> {
-            Category cat = createCategory(4L, "Danh Mục Khác", "Các sản phẩm chưa phân loại thuộc ngành hàng khác.", "/4/", 0, null);
-            return categoryRepository.save(cat);
-        });
+        Category globalOthersCategory = categoryRepository.findByName("Danh Mục Khác").orElseGet(() ->
+                categoryRepository.save(createCategory(4L, "Danh Mục Khác", "Các sản phẩm chưa phân loại thuộc ngành hàng khác.", "/4/", 0, null))
+        );
 
 
         // --- CẤP 1 (CHILDREN OF THỜI TRANG NAM) ---
-        Category shirtCategory = categoryRepository.findByName("Áo Nam").orElseGet(() -> {
-            Category cat = createCategory(5L, "Áo Nam", "Áo sơ mi, áo thun, áo khoác nam.", "/1/5/", 1, fashionCategory);
-            return categoryRepository.save(cat);
-        });
+        Category shirtCategory = categoryRepository.findByName("Áo Nam").orElseGet(() ->
+                categoryRepository.save(createCategory(5L, "Áo Nam", "Áo sơ mi, áo thun, áo khoác nam.", "/1/5/", 1, fashionCategory))
+        );
 
-        Category pantsCategory = categoryRepository.findByName("Quần Nam").orElseGet(() -> {
-            Category cat = createCategory(6L, "Quần Nam", "Quần jeans, quần tây, quần đùi nam.", "/1/6/", 1, fashionCategory);
-            return categoryRepository.save(cat);
-        });
+        Category pantsCategory = categoryRepository.findByName("Quần Nam").orElseGet(() ->
+                categoryRepository.save(createCategory(6L, "Quần Nam", "Quần jeans, quần tây, quần đùi nam.", "/1/6/", 1, fashionCategory))
+        );
 
-        Category fashionOthersCategory = categoryRepository.findByName("Thời Trang Nam Khác").orElseGet(() -> {
-            Category cat = createCategory(7L, "Thời Trang Nam Khác", "Các sản phẩm thời trang nam khác.", "/1/7/", 1, fashionCategory);
-            return categoryRepository.save(cat);
-        });
+        Category fashionOthersCategory = categoryRepository.findByName("Thời Trang Nam Khác").orElseGet(() ->
+                categoryRepository.save(createCategory(7L, "Thời Trang Nam Khác", "Các sản phẩm thời trang nam khác.", "/1/7/", 1, fashionCategory))
+        );
 
 
         // --- CẤP 2 (LEAF NODES OF ÁO NAM) ---
-        Category longSleeveShirt = categoryRepository.findByName("Sơ Mi Dài Tay").orElseGet(() -> {
-            Category cat = createCategory(8L, "Sơ Mi Dài Tay", "Áo sơ mi dài tay công sở, kiểu.", "/1/5/8/", 2, shirtCategory);
-            return categoryRepository.save(cat);
-        });
+        Category longSleeveShirt = categoryRepository.findByName("Sơ Mi Dài Tay").orElseGet(() ->
+                categoryRepository.save(createCategory(8L, "Sơ Mi Dài Tay", "Áo sơ mi dài tay công sở, kiểu.", "/1/5/8/", 2, shirtCategory))
+        );
 
-        Category tShirtCategory = categoryRepository.findByName("Áo Thun Nam").orElseGet(() -> {
-            Category cat = createCategory(9L, "Áo Thun Nam", "Áo thun cổ tròn, polo nam.", "/1/5/9/", 2, shirtCategory);
-            return categoryRepository.save(cat);
-        });
+        Category tShirtCategory = categoryRepository.findByName("Áo Thun Nam").orElseGet(() ->
+                categoryRepository.save(createCategory(9L, "Áo Thun Nam", "Áo thun cổ tròn, polo nam.", "/1/5/9/", 2, shirtCategory))
+        );
 
 
         // --- CẤP 1 & 2 (CHILDREN OF THIẾT BỊ ĐIỆN TỬ) ---
-        Category mobileCategory = categoryRepository.findByName("Điện Thoại & Phụ Kiện").orElseGet(() -> {
-            Category cat = createCategory(10L, "Điện Thoại & Phụ Kiện", "Điện thoại thông minh, tai nghe, sạc dự phòng.", "/2/10/", 1, electronicsCategory);
-            return categoryRepository.save(cat);
-        });
+        Category mobileCategory = categoryRepository.findByName("Điện Thoại & Phụ Kiện").orElseGet(() ->
+                categoryRepository.save(createCategory(10L, "Điện Thoại & Phụ Kiện", "Điện thoại thông minh, tai nghe, sạc dự phòng.", "/2/10/", 1, electronicsCategory))
+        );
 
-        Category smartphoneCategory = categoryRepository.findByName("Điện Thoại Di Động").orElseGet(() -> {
-            Category cat = createCategory(11L, "Điện Thoại Di Động", "Smartphone iOS, Android.", "/2/10/11/", 2, mobileCategory);
-            return categoryRepository.save(cat);
-        });
+        Category smartphoneCategory = categoryRepository.findByName("Điện Thoại Di Động").orElseGet(() ->
+                categoryRepository.save(createCategory(11L, "Điện Thoại Di Động", "Smartphone iOS, Android.", "/2/10/11/", 2, mobileCategory))
+        );
 
-        Category electronicsOthersCategory = categoryRepository.findByName("Thiết Bị Điện Tử Khác").orElseGet(() -> {
-            Category cat = createCategory(12L, "Thiết Bị Điện Tử Khác", "Các thiết bị điện tử kỹ thuật số khác.", "/2/12/", 1, electronicsCategory);
-            return categoryRepository.save(cat);
-        });
+        Category electronicsOthersCategory = categoryRepository.findByName("Thiết Bị Điện Tử Khác").orElseGet(() ->
+                categoryRepository.save(createCategory(12L, "Thiết Bị Điện Tử Khác", "Các thiết bị điện tử kỹ thuật số khác.", "/2/12/", 1, electronicsCategory))
+        );
 
 
         // --- CẤP 1 & 2 (CHILDREN OF THIẾT BỊ GIA DỤNG) ---
-        Category largeApplianceCategory = categoryRepository.findByName("Đồ Gia Dụng Lớn").orElseGet(() -> {
-            Category cat = createCategory(13L, "Đồ Gia Dụng Lớn", "Tủ lạnh, máy giặt, máy sấy.", "/3/13/", 1, homeApplianceCategory);
-            return categoryRepository.save(cat);
-        });
+        Category largeApplianceCategory = categoryRepository.findByName("Đồ Gia Dụng Lớn").orElseGet(() ->
+                categoryRepository.save(createCategory(13L, "Đồ Gia Dụng Lớn", "Tủ lạnh, máy giặt, máy sấy.", "/3/13/", 1, homeApplianceCategory))
+        );
 
-        Category coolingCategory = categoryRepository.findByName("Quạt & Máy Làm Mát").orElseGet(() -> {
-            Category cat = createCategory(14L, "Quạt & Máy Làm Mát", "Quạt đứng, quạt hơi nước, quạt trần.", "/3/13/14/", 2, largeApplianceCategory);
-            return categoryRepository.save(cat);
-        });
+        Category coolingCategory = categoryRepository.findByName("Quạt & Máy Làm Mát").orElseGet(() ->
+                categoryRepository.save(createCategory(14L, "Quạt & Máy Làm Mát", "Quạt đứng, quạt hơi nước, quạt trần.", "/3/13/14/", 2, largeApplianceCategory))
+        );
 
-        // 7. Liên kết Attribute với Category (CategoryAttribute)
-        if (categoryAttributeRepository.findByCategoryAndAttribute(shirtCategory, colorAttribute).isEmpty()) {
-            CategoryAttribute shirtColorAttr = createCategoryAttribute(shirtCategory, colorAttribute, 10, true, FilterType.CHECKBOX);
-            categoryAttributeRepository.save(shirtColorAttr);
-        }
 
-        System.out.println("✅ Catalog Data (Categories & Attributes) initialized successfully.");
+        // -------------------------------------------------------------------------
+        // 5. LIÊN KẾT SPECIFICATION ATTRIBUTES
+        // -------------------------------------------------------------------------
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, shirtCategory, brandAttribute, 1, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, shirtCategory, materialAttribute, 2, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, shirtCategory, originAttribute, 3, true, FilterType.CHECKBOX);
+
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, tShirtCategory, brandAttribute, 1, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, tShirtCategory, materialAttribute, 2, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, tShirtCategory, originAttribute, 3, true, FilterType.CHECKBOX);
+
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, smartphoneCategory, brandAttribute, 1, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, smartphoneCategory, storageSpecAttribute, 2, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, smartphoneCategory, originAttribute, 3, true, FilterType.CHECKBOX);
+
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, coolingCategory, brandAttribute, 1, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, coolingCategory, powerAttribute, 2, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, coolingCategory, originAttribute, 3, true, FilterType.CHECKBOX);
+
+        // Gán cho cả Root Category Thiết Bị Điện Tử (ID 2)
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, electronicsCategory, brandAttribute, 1, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, electronicsCategory, originAttribute, 2, true, FilterType.CHECKBOX);
+
+
+        // -------------------------------------------------------------------------
+        // 6. LIÊN KẾT VARIATION ATTRIBUTES (DÙNG CHO GỢI Ý PHÂN LOẠI SALE INFO)
+        // -------------------------------------------------------------------------
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, shirtCategory, colorAttribute, 10, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, shirtCategory, sizeGlobalAttribute, 11, true, FilterType.CHECKBOX);
+
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, tShirtCategory, colorAttribute, 10, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, tShirtCategory, sizeGlobalAttribute, 11, true, FilterType.CHECKBOX);
+
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, smartphoneCategory, colorAttribute, 10, true, FilterType.CHECKBOX);
+        linkCategoryAttributeIfAbsent(categoryAttributeRepository, smartphoneCategory, storageVarAttribute, 11, true, FilterType.CHECKBOX);
+
+        System.out.println("✅ RESTORED ALL 14 CATEGORIES & ALL SPECIFICATION / VARIATION ATTRIBUTES SUCCESSFULLY!");
     }
 
+
     // --- Helper methods to simplify object creation ---
+    private Attribute createAttribute(String name, String code, AttributeScope scope, AttributeType type, Shop shop) {
+        Attribute attribute = new Attribute();
+        attribute.setName(name);
+        attribute.setCode(code);
+        attribute.setScope(scope);
+        attribute.setType(type);
+        attribute.setShop(shop);
+        attribute.setStatus(AttributeStatus.ACTIVE);
+        return attribute;
+    }
+
+    private void createOptionIfAbsent(AttributeOptionRepository repo, Attribute attr, String value, AttributeScope scope, Shop shop, String defaultUuid) {
+        if (repo.findByAttributeAndValue(attr, value).isEmpty()) {
+            AttributeOption option = createAttributeOption(attr, value, scope, shop);
+            option.setId(UUID.fromString(defaultUuid));
+            repo.save(option);
+        }
+    }
+
+    private void linkCategoryAttributeIfAbsent(CategoryAttributeRepository repo, Category category, Attribute attribute, Integer sortOrder, Boolean isFilterable, FilterType filterType) {
+        if (repo.findByCategoryAndAttribute(category, attribute).isEmpty()) {
+            CategoryAttribute categoryAttribute = createCategoryAttribute(category, attribute, sortOrder, isFilterable, filterType);
+            repo.save(categoryAttribute);
+        }
+    }
 
     private Category createCategory(Long id, String name, String description, String path, Integer depth, Category parent) {
         Category category = new Category();

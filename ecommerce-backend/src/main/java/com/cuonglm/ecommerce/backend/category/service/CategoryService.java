@@ -1,10 +1,7 @@
 package com.cuonglm.ecommerce.backend.category.service;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoDTO;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryTreeNodeDTO;
+import com.cuonglm.ecommerce.backend.category.dto.internal.*;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
 
 import java.util.List;
@@ -21,13 +18,13 @@ public interface CategoryService {
 
     Category getCategoryReference(Long categoryId);
 
-    List<CategoryInfoView> getRootCategories();
+    List<CategoryInfoDTO> getRootCategories();
 
-    List<CategoryInfoView> getChildrenCategories(Long parentId);
+    List<CategoryInfoDTO> getChildrenCategories(Long parentId);
 
-    List<CategoryInfoView> searchCategories(String keyword);
+    List<CategoryInfoDTO> searchCategories(String keyword);
 
-    List<CategoryAttributeInfoView> getCategoryAttributes(Long categoryId, AttributeType type);
+    List<CategoryAttributeInfoDTO> getCategoryAttributes(Long categoryId, AttributeType type);
 
     List<CategoryTreeNodeDTO> getCategoryTree();
 }

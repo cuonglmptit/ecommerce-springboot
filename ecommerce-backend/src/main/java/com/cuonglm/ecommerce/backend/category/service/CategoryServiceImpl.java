@@ -2,10 +2,7 @@ package com.cuonglm.ecommerce.backend.category.service;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoDTO;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryTreeNodeDTO;
+import com.cuonglm.ecommerce.backend.category.dto.internal.*;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
 import com.cuonglm.ecommerce.backend.category.repository.CategoryAttributeRepository;
 import com.cuonglm.ecommerce.backend.category.repository.CategoryRepository;
@@ -50,36 +47,45 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryInfoView> getRootCategories() {
-        return categoryRepository.findRootCategories(BasicStatus.ACTIVE);
+    public List<CategoryInfoDTO> getRootCategories() {
+        return categoryRepository.findRootCategories(BasicStatus.ACTIVE)
+                .stream()
+                .map(CategoryInfoDTO::fromView)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryInfoView> getChildrenCategories(Long parentId) {
-        return categoryRepository.findChildrenCategories(parentId, BasicStatus.ACTIVE);
+    public List<CategoryInfoDTO> getChildrenCategories(Long parentId) {
+        return categoryRepository.findChildrenCategories(parentId, BasicStatus.ACTIVE)
+                .stream()
+                .map(CategoryInfoDTO::fromView)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryInfoView> searchCategories(String keyword) {
+    public List<CategoryInfoDTO> searchCategories(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }
-        return categoryRepository.searchCategories(
-                keyword.trim(),
-                BasicStatus.ACTIVE
-        );
+        return categoryRepository.searchCategories(keyword.trim(), BasicStatus.ACTIVE)
+                .stream()
+                .map(CategoryInfoDTO::fromView)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryAttributeInfoView> getCategoryAttributes(Long categoryId, AttributeType type) {
+    public List<CategoryAttributeInfoDTO> getCategoryAttributes(Long categoryId, AttributeType type) {
         return categoryAttributeRepository.findCategoryAttributes(
                 categoryId,
                 AttributeStatus.ACTIVE,
                 type
-        );
+        )
+                .stream()
+                .map(CategoryAttributeInfoDTO::fromView)
+                .toList();
     }
 
     @Override

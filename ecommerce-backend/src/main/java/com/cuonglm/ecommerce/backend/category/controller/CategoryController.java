@@ -1,9 +1,7 @@
 package com.cuonglm.ecommerce.backend.category.controller;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryTreeNodeDTO;
+import com.cuonglm.ecommerce.backend.category.dto.internal.*;
 import com.cuonglm.ecommerce.backend.category.service.CategoryService;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -32,22 +30,22 @@ public class CategoryController {
     }
 
     @GetMapping("/roots")
-    public ResponseEntity<ApiResponse<List<CategoryInfoView>>> getRootCategories() {
+    public ResponseEntity<ApiResponse<List<CategoryInfoDTO>>> getRootCategories() {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getRootCategories()));
     }
 
     @GetMapping("/{parentId}/children")
-    public ResponseEntity<ApiResponse<List<CategoryInfoView>>> getChildren(@PathVariable Long parentId) {
+    public ResponseEntity<ApiResponse<List<CategoryInfoDTO>>> getChildren(@PathVariable Long parentId) {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getChildrenCategories(parentId)));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<CategoryInfoView>>> search(@RequestParam("q") String keyword) {
+    public ResponseEntity<ApiResponse<List<CategoryInfoDTO>>> search(@RequestParam("q") String keyword) {
         return ResponseEntity.ok(ApiResponse.success(categoryService.searchCategories(keyword)));
     }
 
     @GetMapping("/{categoryId}/attributes")
-    public ResponseEntity<ApiResponse<List<CategoryAttributeInfoView>>> getCategoryAttributes(
+    public ResponseEntity<ApiResponse<List<CategoryAttributeInfoDTO>>> getCategoryAttributes(
             @PathVariable Long categoryId,
             @RequestParam(value = "type", required = false) AttributeType type
     ) {
