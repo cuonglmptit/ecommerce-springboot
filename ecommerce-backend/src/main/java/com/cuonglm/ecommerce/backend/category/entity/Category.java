@@ -1,7 +1,10 @@
 package com.cuonglm.ecommerce.backend.category.entity;
 
+import com.cuonglm.ecommerce.backend.category.entity.snapshot.CategoryMediaSnapshot;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -36,8 +39,9 @@ public class Category {
     @Column(length = 1000)
     private String description;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CategoryMedia> media = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "media", columnDefinition = "jsonb")
+    private List<CategoryMediaSnapshot> media = new ArrayList<>();
 
     /**
      * Đường dẫn từ gốc đến node hiện tại, ví dụ: /1/4/6/
@@ -109,12 +113,12 @@ public class Category {
         this.description = description;
     }
 
-    public List<CategoryMedia> getMedia() {
+    public List<CategoryMediaSnapshot> getMedia() {
         return media;
     }
 
-    public void setMedia(List<CategoryMedia> media) {
-        this.media = media;
+    public void setMedia(List<CategoryMediaSnapshot> media) {
+        this.media = (media != null) ? media : new ArrayList<>();
     }
 
     public String getPath() {
