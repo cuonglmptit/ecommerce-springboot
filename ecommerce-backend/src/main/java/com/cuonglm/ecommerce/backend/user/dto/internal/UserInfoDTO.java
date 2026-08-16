@@ -26,4 +26,15 @@ public record UserInfoDTO(
     public boolean isAdmin() {
         return this.roles.contains(UserRole.ADMIN);
     }
+    public static UserInfoDTO fromView(UserInfoView view){
+        if (view == null) return null;
+        return new UserInfoDTO(
+                view.getId(),
+                view.getEmail(),
+                view.getStatus(),
+                view.isEmailVerified(),
+                view.isPhoneVerified(),
+                view.getRoles()
+        );
+    }
 }

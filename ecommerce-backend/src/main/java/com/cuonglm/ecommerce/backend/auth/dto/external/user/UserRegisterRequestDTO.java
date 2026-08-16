@@ -1,6 +1,5 @@
 package com.cuonglm.ecommerce.backend.auth.dto.external.user;
 
-import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import jakarta.validation.constraints.*;
 
 /**

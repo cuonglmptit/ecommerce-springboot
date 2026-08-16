@@ -2,16 +2,10 @@ package com.cuonglm.ecommerce.backend.core.utils;
 
 import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * SecurityUtils – Utils dùng cho thông tin người dùng.

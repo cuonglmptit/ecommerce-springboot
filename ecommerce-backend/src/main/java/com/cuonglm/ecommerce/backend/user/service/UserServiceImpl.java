@@ -1,7 +1,6 @@
 package com.cuonglm.ecommerce.backend.user.service;
 
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
-import com.cuonglm.ecommerce.backend.core.exception.UnauthenticatedException;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.user.dto.internal.*;
 import com.cuonglm.ecommerce.backend.user.entity.User;
@@ -229,43 +228,24 @@ public class UserServiceImpl implements UserService {
         return userOptional.map(UserSecurityAndProfileDTO::new);
     }
 
-    /**
-     * Helper method để ánh xạ (map) từ UserInfoView Projection sang UserInfoDTO.
-     *
-     * @param view View Projection từ UserRepository
-     * @return DTO chứa thông tin User
-     */
-    private UserInfoDTO mapToUserInfoDTO(UserInfoView view) {
-        return new UserInfoDTO(
-                view.getId(),
-                view.getEmail(),
-                view.getStatus(),
-                view.isEmailVerified(),
-                view.isPhoneVerified(),
-                view.getRoles()
-        );
-    }
-
     @Override
     @Transactional(readOnly = true) // Nên có readOnly = true cho các method get
     public UserInfoDTO getCurrentAuthenticatedUserInfo() {
         // 1. Gọi Core để lấy chuỗi định danh (Username/Email)
-        Long userId = SecurityUtils.getCurrentUserId()
-                .orElseThrow(() -> new UnauthenticatedException("Người dùng chưa đăng nhập hoặc phiên làm việc hết hạn."));
+        Long userId = SecurityUtils.getRequiredCurrentUserId();
 
         // 2. Lấy Interface View từ DB
         UserInfoView view = userRepository.findUserInfoById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin người dùng: " + userId));
 
         // 3. MAPPING: Chuyển đổi từ Entity User sang Internal DTO
-        // (Bước này bị thiếu trong code cũ của bạn)
-        return mapToUserInfoDTO(view);
+        return UserInfoDTO.fromView(view);
     }
 
     @Override
     public Optional<UserInfoDTO> findUserInfoById(Long userId) {
         return userRepository.findUserInfoById(userId)
-                .map(this::mapToUserInfoDTO);
+                .map(UserInfoDTO::fromView);
     }
 
     @Override

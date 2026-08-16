@@ -1,8 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.service.token;
 
 import com.cuonglm.ecommerce.backend.auth.model.BasePrincipal;
-import com.cuonglm.ecommerce.backend.auth.model.LocalUserPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.stereotype.Component;
