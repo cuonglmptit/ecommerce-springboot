@@ -1,8 +1,9 @@
 package com.cuonglm.ecommerce.backend.media.controller;
 
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
-import com.cuonglm.ecommerce.backend.media.dto.external.MediaCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.media.dto.external.MediaResponse;
 import com.cuonglm.ecommerce.backend.media.service.MediaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @since Monday, 24 November 2025
  */
 @RestController
-@RequestMapping("/api/v1/variantMedia")
+@RequestMapping("/api/v1/media")
 public class MediaController {
     private final MediaService mediaService;
 
@@ -26,13 +27,11 @@ public class MediaController {
         this.mediaService = mediaService;
     }
 
-
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<MediaCreateResponseDTO>> uploadFile(
+    public ResponseEntity<ApiResponse<MediaResponse>> uploadFile(
             @RequestPart("file") MultipartFile file
     ) {
-        // Gọi Service để upload lên Cloud và lưu Entity Media
-        MediaCreateResponseDTO response = mediaService.uploadProductMedia(file);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        MediaResponse response = mediaService.uploadProductMedia(file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 }

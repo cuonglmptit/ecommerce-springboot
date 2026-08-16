@@ -14,9 +14,15 @@ import java.util.UUID;
 public interface MediaInfoView {
     UUID getId();
 
+    String getUrl();
+
     MediaType getType();
 
     BasicStatus getStatus();
 
-    Long getUploader_Id();
+    UserSummaryInfoView getUploader();
+
+    interface UserSummaryInfoView {
+        Long getId();
+    }
 }

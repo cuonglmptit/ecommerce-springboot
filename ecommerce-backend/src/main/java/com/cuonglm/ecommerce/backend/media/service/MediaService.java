@@ -1,11 +1,12 @@
 package com.cuonglm.ecommerce.backend.media.service;
 
-import com.cuonglm.ecommerce.backend.media.dto.external.MediaCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.media.dto.external.MediaResponse;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
-import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoView;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,9 +27,20 @@ public interface MediaService {
      * @param file File cần upload
      * @return DTO chứa thông tin variantMedia đã tạo.
      */
-    MediaCreateResponseDTO uploadProductMedia(MultipartFile file);
+    MediaResponse uploadProductMedia(MultipartFile file);
 
+    /**
+     * Tìm thông tin 1 Media theo ID.
+     */
     Optional<MediaInfoDTO> findMediaInfoById(UUID id);
 
+    /**
+     * Batch query lấy danh sách Media theo danh sách ID (Chống N+1 query).
+     */
+    List<MediaInfoDTO> findMediaInfoByIds(Collection<UUID> ids);
+
+    /**
+     * Lấy JPA Proxy Reference để liên kết entity mà không cần query SELECT.
+     */
     Media getMediaReference(UUID mediaId);
 }

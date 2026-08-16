@@ -34,6 +34,12 @@ public class Media {
     /**
      * UUID với GenerationType.UUID (JPA 3.1+)
      */
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
     @Id
 //    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -85,6 +91,7 @@ public class Media {
     private BasicStatus status = BasicStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploader_id", nullable = false)
     private User uploader;
 
     //<editor-fold desc="Audit metadata">
