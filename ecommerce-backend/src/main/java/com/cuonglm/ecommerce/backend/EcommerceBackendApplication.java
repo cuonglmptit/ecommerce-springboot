@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableAsync
-@EnableJpaAuditing
 public class EcommerceBackendApplication {
 
     public static void main(String[] args) {
