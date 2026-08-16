@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.attribute.dto.internal;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 
 import java.util.UUID;
@@ -28,4 +29,5 @@ public interface AttributeInfoView {
     }
 
     AttributeStatus getStatus();
+    AttributeType getType();
 }

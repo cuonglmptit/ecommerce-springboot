@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.attribute.dto.internal;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 
 import java.util.UUID;
 
@@ -17,7 +18,8 @@ public record AttributeInfoDTO(
         String code,
         AttributeScope scope,
         Long shopId,
-        AttributeStatus status
+        AttributeStatus status,
+        AttributeType type
 ) {
     public static AttributeInfoDTO fromView(AttributeInfoView view) {
         if (view == null) {
@@ -29,7 +31,8 @@ public record AttributeInfoDTO(
                 view.getCode(),
                 view.getScope(),
                 (view.getShop() != null) ? view.getShop().getId() : null,
-                view.getStatus()
+                view.getStatus(),
+                view.getType()
         );
     }
 }
