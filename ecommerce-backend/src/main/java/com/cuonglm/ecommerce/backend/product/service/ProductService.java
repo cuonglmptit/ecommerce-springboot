@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.product.service;
 
-import com.cuonglm.ecommerce.backend.product.dto.external.ProductCreateRequestDTO;
-import com.cuonglm.ecommerce.backend.product.dto.external.ProductCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.product.dto.external.CreateProductRequest;
+import com.cuonglm.ecommerce.backend.product.dto.external.ProductResponse;
 
 /**
  * ProductService – Interface mô tả các phương thức thao tác với Product.
@@ -10,5 +10,5 @@ import com.cuonglm.ecommerce.backend.product.dto.external.ProductCreateResponseD
  * @since Tuesday, 25 November 2025
  */
 public interface ProductService {
-    ProductCreateResponseDTO createProduct(ProductCreateRequestDTO request);
+    ProductResponse createProduct(CreateProductRequest request);
 }

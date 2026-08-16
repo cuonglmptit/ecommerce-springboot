@@ -1,9 +1,13 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
 import com.cuonglm.ecommerce.backend.category.entity.Category;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapshot;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.SpecificationSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -43,8 +47,9 @@ public class Product {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductSpecification> specifications = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "specifications", columnDefinition = "jsonb")
+    private List<SpecificationSnapshot> specifications = new ArrayList<>();
 
     @Column(nullable = false, length = 255)
     private String description;
@@ -52,8 +57,9 @@ public class Product {
     @Column(nullable = false)
     private ProductStatus status;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductMedia> media = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "media", columnDefinition = "jsonb")
+    private List<ProductMediaSnapshot> media = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
@@ -78,6 +84,11 @@ public class Product {
     //</editor-fold>
 
     //<editor-fold desc="Getter/Setters">
+
+    public void addVariant(ProductVariant variant) {
+        variants.add(variant);
+        variant.setProduct(this);
+    }
 
     public Long getId() {
         return id;
@@ -119,12 +130,20 @@ public class Product {
         this.description = description;
     }
 
-    public List<ProductMedia> getMedia() {
+    public List<SpecificationSnapshot> getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(List<SpecificationSnapshot> specifications) {
+        this.specifications = (specifications != null) ? specifications : new ArrayList<>();
+    }
+
+    public List<ProductMediaSnapshot> getMedia() {
         return media;
     }
 
-    public void setMedia(List<ProductMedia> media) {
-        this.media = media;
+    public void setMedia(List<ProductMediaSnapshot> media) {
+        this.media = (media != null) ? media : new ArrayList<>();
     }
 
     public List<ProductVariant> getVariants() {

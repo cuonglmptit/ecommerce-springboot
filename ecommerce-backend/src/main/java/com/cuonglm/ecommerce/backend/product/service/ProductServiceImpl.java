@@ -11,19 +11,19 @@ import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.service.MediaService;
-import com.cuonglm.ecommerce.backend.product.dto.external.*;
-import com.cuonglm.ecommerce.backend.product.dto.internal.AttributeSnapshot;
+import com.cuonglm.ecommerce.backend.product.dto.external.CreateProductRequest;
+import com.cuonglm.ecommerce.backend.product.dto.external.ProductResponse;
 import com.cuonglm.ecommerce.backend.product.entity.Product;
-import com.cuonglm.ecommerce.backend.product.entity.ProductMedia;
 import com.cuonglm.ecommerce.backend.product.entity.ProductVariant;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapshot;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.SpecificationSnapshot;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.VariantAttributeSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
 import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
-import com.cuonglm.ecommerce.backend.product.repository.ProductMediaRepository;
 import com.cuonglm.ecommerce.backend.product.repository.ProductRepository;
-import com.cuonglm.ecommerce.backend.product.repository.ProductVariantRepository;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.service.ShopService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -39,24 +39,17 @@ import java.util.*;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductVariantRepository productVariantRepository;
-    private final ProductMediaRepository productMediaRepository;
-
     private final AttributeService attributeService;
     private final CategoryService categoryService;
     private final ShopService shopService;
     private final MediaService mediaService;
 
     public ProductServiceImpl(ProductRepository productRepository,
-                              ProductVariantRepository productVariantRepository,
-                              ProductMediaRepository productMediaRepository,
                               AttributeService attributeService,
                               CategoryService categoryService,
                               ShopService shopService,
                               MediaService mediaService) {
         this.productRepository = productRepository;
-        this.productVariantRepository = productVariantRepository;
-        this.productMediaRepository = productMediaRepository;
         this.attributeService = attributeService;
         this.categoryService = categoryService;
         this.shopService = shopService;
@@ -64,18 +57,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductCreateResponseDTO createProduct(ProductCreateRequestDTO request) {
+    public ProductResponse createProduct(CreateProductRequest request) {
         // 1. Kiểm tra quyền thao tác trên Shop
-        // Check User có phải Owner, Admin, hay Nhân viên có quyền PRODUCT_WRITE không.
         shopService.validatePermission(request.shopId(), ShopPermission.PRODUCT_WRITE);
-
-        // Lấy ID người dùng đang thao tác
         Long currentUserId = SecurityUtils.getRequiredCurrentUserId();
 
         CategoryInfoDTO categoryInfo = categoryService.findCategoryInfoById(request.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Category id: " + request.categoryId()));
 
-        // 2. Tạo & Lưu Product Cha
+        // 2. Khởi tạo đối tượng Product gốc
         Product product = new Product();
         product.setShop(shopService.getShopReference(request.shopId()));
         product.setCategory(categoryService.getCategoryReference(categoryInfo.id()));
@@ -83,144 +73,116 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.description());
         product.setStatus(ProductStatus.ACTIVE);
 
-        Product savedProduct = productRepository.save(product);
-
-        // 3. Xử lý Ảnh chung (Product Media)
-        if (request.productMedia() != null) {
-            saveProductMedia(savedProduct, null, request.productMedia(), currentUserId);
+        // 3. Đóng gói JSONB Specifications (Thông số kỹ thuật)
+        if (request.specifications() != null && !request.specifications().isEmpty()) {
+            List<SpecificationSnapshot> specSnapshots = request.specifications().stream()
+                    .map(s -> SpecificationSnapshot.of(
+                            s.attributeId(),
+                            s.attributeName(),
+                            s.attributeCode(),
+                            s.optionId(),
+                            s.optionValue(),
+                            s.rawValue()
+                    ))
+                    .toList();
+            product.setSpecifications(specSnapshots);
         }
 
-        // 4. Xử lý Variants (Con)
-        if (request.variants() != null) {
-            for (ProductVariantCreateRequestDTO variantDTO : request.variants()) {
-                createAndSaveVariant(savedProduct, variantDTO, currentUserId);
+        // 4. Đóng gói JSONB Product Media
+        if (request.media() != null && !request.media().isEmpty()) {
+            List<ProductMediaSnapshot> mediaSnapshots = processMediaSnapshots(request.media(), currentUserId, true);
+            product.setMedia(mediaSnapshots);
+        }
+
+        // 5. Đóng gói Variants (ACID Table + JSONB attributes & media)
+        if (request.variants() != null && !request.variants().isEmpty()) {
+            for (CreateProductRequest.VariantInput vInput : request.variants()) {
+                ProductVariant variant = buildVariant(vInput, request.shopId(), currentUserId);
+                product.addVariant(variant);
             }
         }
 
-        // 5.  Trả về Response DTO
-        return ProductCreateResponseDTO.fromEntity(savedProduct);
+        // 6. Lưu toàn bộ Product Aggregate trong DUY NHẤT 1 lần save()
+        Product savedProduct = productRepository.save(product);
+
+        return ProductResponse.fromEntity(savedProduct);
     }
 
-    // --- Helper: Lưu Variant bằng JSONB Snapshot ---
-    private void createAndSaveVariant(Product product, ProductVariantCreateRequestDTO dto, Long shopOwnerId) {
-
+    // --- Helper: Xử lý và validate Variant ---
+    private ProductVariant buildVariant(CreateProductRequest.VariantInput input, Long shopId, Long currentUserId) {
         ProductVariant variant = new ProductVariant();
-        variant.setProduct(product);
-        variant.setSku(dto.sku());
-        variant.setPrice(dto.price());
-        variant.setStockQuantity(dto.stockQuantity());
+        variant.setSku(input.sku());
+        variant.setPrice(input.price());
+        variant.setSalePrice(input.salePrice());
+        variant.setStockQuantity(input.stockQuantity());
         variant.setStatus(ProductVariantStatus.ACTIVE);
 
-        // Đóng gói JSONB Attributes
-        if (dto.attributes() != null && !dto.attributes().isEmpty()) {
+        // Xử lý JSONB Attributes cho Variant
+        if (input.attributes() != null && !input.attributes().isEmpty()) {
             Set<UUID> seenAttributeIds = new HashSet<>();
-            List<AttributeSnapshot> snapshots = new ArrayList<>();
-            Long currentShopId = product.getShop().getId();
+            List<VariantAttributeSnapshot> attrSnapshots = new ArrayList<>();
 
-            for (VariantAttributeInputDTO attrInput : dto.attributes()) {
+            for (CreateProductRequest.VariantAttrInput attrInput : input.attributes()) {
                 AttributeOptionInfoDTO option;
-
-                // Nếu có optionId -> Lấy thông tin từ DB
                 if (attrInput.optionId() != null) {
                     option = attributeService.findAttributeOptionInfoById(attrInput.optionId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Attribute Option không tồn tại với ID: " + attrInput.optionId()));
+                            .orElseThrow(() -> new ResourceNotFoundException("Attribute Option không tồn tại: " + attrInput.optionId()));
                 } else {
-                    // Nếu optionId == null -> Find-or-Create Atomic
                     option = attributeService.findOrCreateAttributeOption(
-                            currentShopId,
+                            shopId,
                             attrInput.attributeName(),
                             attrInput.optionValue(),
                             AttributeType.VARIATION
                     );
                 }
 
-                // Check xem có trùng 2 Option cho cùng 1 Attribute trong 1 Variant không
                 if (!seenAttributeIds.add(option.attributeId())) {
-                    throw new ConflictException(
-                            String.format("Biến thể không hợp lệ. Trùng nhiều hơn 1 giá trị cho thuộc tính: %s - option: %s", option.attributeName(), option.value())
-                    );
+                    throw new ConflictException("Biến thể không hợp lệ. Trùng thuộc tính: " + option.attributeName());
                 }
 
-                // Validate Quyền
                 boolean isGlobal = option.shopId() == null;
-                boolean isOwned = option.shopId() != null && option.shopId().equals(currentShopId);
+                boolean isOwned = option.shopId() != null && option.shopId().equals(shopId);
                 if (!isGlobal && !isOwned) {
-                    throw new PermissionDeniedException("Vi phạm quyền sử dụng Attribute Option: " + option.id());
+                    throw new PermissionDeniedException("Không có quyền sử dụng Attribute Option: " + option.id());
                 }
 
-                // Build Snapshot object (Giả định AttributeOptionInfoDTO có trường attributeName)
-                snapshots.add(AttributeSnapshot.fromInfo(option));
+                attrSnapshots.add(VariantAttributeSnapshot.fromInfo(option));
             }
-
-            // Gán danh sách snapshot vào Variant
-            variant.setAttributes(snapshots);
-        } else {
-            variant.setAttributes(Collections.emptyList());
+            variant.setAttributes(attrSnapshots);
         }
 
-        // Lưu Variant (Hibernate tự động serialize `attributes` thành JSONB)
-        ProductVariant savedVariant = productVariantRepository.save(variant);
-
-        // Lưu Ảnh riêng của Variant (nếu có)
-        if (dto.variantMedia() != null) {
-            saveProductMedia(product, savedVariant, dto.variantMedia(), shopOwnerId);
+        // Xử lý JSONB Media cho Variant (nếu có)
+        if (input.media() != null && !input.media().isEmpty()) {
+            List<ProductMediaSnapshot> variantMediaSnapshots = processMediaSnapshots(input.media(), currentUserId, false);
+            variant.setMedia(variantMediaSnapshots);
         }
+
+        return variant;
     }
 
-    private void saveProductMedia(Product product, ProductVariant variant,
-                                  List<ProductMediaCreateRequestDTO> mediaDTOs,
-                                  Long shopOwnerId) {
-        List<ProductMedia> mediaList = new ArrayList<>();
-
-        if (product != null && variant == null) {
-            if (mediaDTOs.size() < 1 || mediaDTOs.size() > 7)
-                throw new IllegalArgumentException("Số lượng ảnh của Product phải từ 1-7");
-
-            List<ProductMediaCreateRequestDTO> thumbnailDTOs = mediaDTOs.stream()
-                    .filter(ProductMediaCreateRequestDTO::isThumbnail)
-                    .toList();
-
-            if (thumbnailDTOs.isEmpty()) {
-                ProductMediaCreateRequestDTO firstMediaUpdated = new ProductMediaCreateRequestDTO(
-                        mediaDTOs.get(0).mediaId(),
-                        true,
-                        mediaDTOs.get(0).sortOrder()
-                );
-                mediaDTOs.set(0, firstMediaUpdated);
-            } else if (thumbnailDTOs.size() > 1) {
-                UUID keepThumbnailId = thumbnailDTOs.get(0).mediaId();
-                List<ProductMediaCreateRequestDTO> normalizedMediaDTOs = new ArrayList<>();
-                for (ProductMediaCreateRequestDTO mediaDTO : mediaDTOs) {
-                    boolean newIsThumbnail = mediaDTO.mediaId().equals(keepThumbnailId);
-                    ProductMediaCreateRequestDTO newDTO = new ProductMediaCreateRequestDTO(
-                            mediaDTO.mediaId(),
-                            newIsThumbnail,
-                            mediaDTO.sortOrder()
-                    );
-                    normalizedMediaDTOs.add(newDTO);
-                }
-                mediaDTOs = normalizedMediaDTOs;
-            }
+    // --- Helper: Validate quyền sở hữu Media và đóng gói Snapshot ---
+    private List<ProductMediaSnapshot> processMediaSnapshots(List<CreateProductRequest.MediaInput> mediaInputs,
+                                                             Long currentUserId,
+                                                             boolean isProductMedia) {
+        if (isProductMedia && (mediaInputs.size() < 1 || mediaInputs.size() > 7)) {
+            throw new IllegalArgumentException("Số lượng ảnh sản phẩm phải từ 1 đến 7");
         }
 
-        for (ProductMediaCreateRequestDTO mediaDTO : mediaDTOs) {
-            MediaInfoDTO mediaInfo = mediaService.findMediaInfoById(mediaDTO.mediaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Media not found: " + mediaDTO.mediaId()));
+        // Đảm bảo có ít nhất 1 thumbnail
+        boolean hasThumbnail = mediaInputs.stream().anyMatch(CreateProductRequest.MediaInput::isThumbnail);
 
-            if (!mediaInfo.uploaderId().equals(shopOwnerId)) {
-                throw new PermissionDeniedException("Media ID " + mediaDTO.mediaId() + " không thuộc sở hữu của Shop hoặc người upload không phải chủ shop.");
-            }
+        return mediaInputs.stream()
+                .map(m -> {
+                    MediaInfoDTO mediaInfo = mediaService.findMediaInfoById(m.mediaId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Media not found: " + m.mediaId()));
 
-            ProductMedia pm = ProductMedia.of(
-                    product,
-                    variant,
-                    mediaService.getMediaReference(mediaInfo.id()),
-                    mediaDTO.isThumbnail(),
-                    mediaDTO.sortOrder()
-            );
+                    if (!mediaInfo.uploaderId().equals(currentUserId)) {
+                        throw new PermissionDeniedException("Media ID " + m.mediaId() + " không thuộc quyền sở hữu của bạn.");
+                    }
 
-            mediaList.add(pm);
-        }
-        productMediaRepository.saveAll(mediaList);
+                    boolean isThumb = isProductMedia && !hasThumbnail && m.sortOrder() == 0 || m.isThumbnail();
+                    return ProductMediaSnapshot.of(m.mediaId(), m.url(), m.alt(), isThumb, m.sortOrder());
+                })
+                .toList();
     }
 }

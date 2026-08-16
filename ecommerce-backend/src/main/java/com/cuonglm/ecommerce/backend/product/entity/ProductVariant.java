@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
-import com.cuonglm.ecommerce.backend.product.dto.internal.AttributeSnapshot;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapshot;
+import com.cuonglm.ecommerce.backend.product.entity.snapshot.VariantAttributeSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -57,10 +58,11 @@ public class ProductVariant {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "attributes", columnDefinition = "jsonb")
-    private List<AttributeSnapshot> attributes = new ArrayList<>();
+    private List<VariantAttributeSnapshot> attributes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "variant")
-    private List<ProductMedia> media = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "media", columnDefinition = "jsonb")
+    private List<ProductMediaSnapshot> media = new ArrayList<>();
 
     @Column(nullable = false)
     private ProductVariantStatus status;
@@ -115,20 +117,20 @@ public class ProductVariant {
         this.stockQuantity = stockQuantity;
     }
 
-    public List<AttributeSnapshot> getAttributes() {
+    public List<VariantAttributeSnapshot> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<AttributeSnapshot> attributes) {
+    public void setAttributes(List<VariantAttributeSnapshot> attributes) {
         this.attributes = attributes;
     }
 
-    public List<ProductMedia> getMedia() {
+    public List<ProductMediaSnapshot> getMedia() {
         return media;
     }
 
-    public void setMedia(List<ProductMedia> media) {
-        this.media = media;
+    public void setMedia(List<ProductMediaSnapshot> media) {
+        this.media = (media != null) ? media : new ArrayList<>();
     }
 
     public ProductVariantStatus getStatus() {
