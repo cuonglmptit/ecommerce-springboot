@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.core.config;
 
+import com.cuonglm.ecommerce.backend.core.constants.CoreConstants;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
@@ -21,15 +22,7 @@ public class SecurityAuditorAware implements AuditorAware<Long> {
 
     @Override
     public Optional<Long> getCurrentAuditor() {
-        Optional<Long> currentUserId = SecurityUtils.getCurrentUserId();
-
-        // Nếu người dùng tồn tại, trả về ID đó.
-        // Nếu không tồn tại (Optional.empty()), trả về Optional.of(1L) làm ID mặc định (SystemAuditor).
-        if (currentUserId.isPresent()) {
-            return currentUserId;
-        } else {
-            // ID 1L là ID của người dùng hệ thống
-            return Optional.of(1L);
-        }
+        return SecurityUtils.getCurrentUserId()
+                .or(() -> Optional.of(CoreConstants.SYSTEM_USER_ID));
     }
 }

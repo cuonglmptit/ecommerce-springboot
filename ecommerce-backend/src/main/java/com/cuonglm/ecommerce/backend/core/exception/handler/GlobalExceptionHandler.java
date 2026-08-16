@@ -1,16 +1,25 @@
 package com.cuonglm.ecommerce.backend.core.exception.handler;
 
-import com.cuonglm.ecommerce.backend.core.exception.ValidationErrorsException;
+import com.cuonglm.ecommerce.backend.core.exception.*;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,96 +38,99 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /**
-     * Xử lý các lỗi validation (ví dụ: @Valid, @NotNull, @Size).
-     * Trả về mã lỗi 400 Bad Request.
-     */
+    // 1. Lỗi Validation từ Annotation (@Valid, @NotNull...) -> 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-        return ApiResponse.error("VALIDATION_FAILED", "Dữ liệu không hợp lệ").addExtra("errors", errors);
+    public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, Object> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+        ApiResponse<Object> response = ApiResponse.error("VALIDATION_FAILED", "Dữ liệu gửi lên không hợp lệ.", errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // 2. Lỗi Validation gom nhiều lỗi từ Business Service -> 400
     @ExceptionHandler(ValidationErrorsException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationErrors(ValidationErrorsException ex) {
-        // Tạo response lỗi
-        ApiResponse<Object> errorResponse = ApiResponse.error(
-                "VALIDATION_FAILED",
-                ex.getMessage(), // Thông báo chung
+        ApiResponse<Object> response = ApiResponse.error("VALIDATION_FAILED", ex.getMessage(), ex.getErrors());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    // 3. Lỗi Nghiệp vụ chung (BadRequestException, InvalidLocationDataException, IllegalArgumentException) -> 400
+    @ExceptionHandler({BadRequestException.class, InvalidLocationDataException.class, IllegalArgumentException.class})
+    public ResponseEntity<ApiResponse<Object>> handleBadRequest(RuntimeException ex) {
+        ApiResponse<Object> response = ApiResponse.error("BAD_REQUEST", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    // 4. Lỗi định dạng Request (JSON lỗi cú pháp, sai kiểu dữ liệu PathVariable) -> 400
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
+    public ResponseEntity<ApiResponse<Object>> handleMalformedRequest(Exception ex) {
+        ApiResponse<Object> response = ApiResponse.error("MALFORMED_REQUEST", "Yêu cầu không hợp lệ hoặc sai định dạng dữ liệu.", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    // 5. Lỗi Chưa Đăng nhập / Sai thông tin xác thực -> 401
+    @ExceptionHandler({UnauthenticatedException.class, BadCredentialsException.class})
+    public ResponseEntity<ApiResponse<Object>> handleUnauthenticated(Exception ex) {
+        ApiResponse<Object> response = ApiResponse.error("UNAUTHORIZED", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // 6. Lỗi Tài khoản bị Khóa / Vô hiệu hóa -> 401
+    @ExceptionHandler({LockedException.class, DisabledException.class})
+    public ResponseEntity<ApiResponse<Object>> handleAccountDisabled(AuthenticationException ex) {
+        String code = (ex instanceof LockedException) ? "ACCOUNT_LOCKED" : "ACCOUNT_DISABLED";
+        ApiResponse<Object> response = ApiResponse.error(code, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // 7. Lỗi Không đủ quyền (PermissionDeniedException, Spring AccessDeniedException) -> 403
+    @ExceptionHandler({PermissionDeniedException.class, AccessDeniedException.class})
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(Exception ex) {
+        ApiResponse<Object> response = ApiResponse.error("FORBIDDEN", "Bạn không có quyền truy cập hoặc thực hiện thao tác này.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    // 8. Lỗi Không tìm thấy tài nguyên -> 404
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        ApiResponse<Object> response = ApiResponse.error("RESOURCE_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // 9. Lỗi Sai HTTP Method (POST vào endpoint GET) -> 405
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        ApiResponse<Object> response = ApiResponse.error("METHOD_NOT_ALLOWED", "Phương thức HTTP '" + ex.getMethod() + "' không được hỗ trợ cho API này.");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
+    }
+
+    // 10. Lỗi Trùng lặp dữ liệu (Unique Constraint / Conflict) -> 409
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse<Object>> handleConflict(ConflictException ex) {
+        ApiResponse<Object> response = ApiResponse.error("DATA_CONFLICT", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    // 11. Lỗi Vượt quá kích thước file upload -> 413
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        ApiResponse<Object> response = ApiResponse.error("FILE_TOO_LARGE", "Kích thước file tải lên vượt quá giới hạn tối đa cho phép của hệ thống.");
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+    }
+
+    // 12. Lỗi Hệ thống bất ngờ (Fallback cuối cùng) -> 500
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleUncaughtException(Exception ex) {
+        log.error("Internal Server Error: ", ex);
+        ApiResponse<Object> response = ApiResponse.error(
+                "INTERNAL_SERVER_ERROR",
+                "Hệ thống đang gặp sự cố. Vui lòng thử lại sau.",
                 ex.getMessage()
         );
-
-        // Thêm chi tiết lỗi vào trường 'extra'
-        errorResponse.setExtra(ex.getErrors());
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Xử lý các lỗi nghiệp vụ (ví dụ: user đã tồn tại, sản phẩm hết hàng).
-     * Trả về mã lỗi 400 Bad Request.
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<?> handleIllegalArgumentException(IllegalArgumentException ex) {
-        // Với lỗi nghiệp vụ, userMessage và devMessage có thể giống nhau
-        // vì thông điệp thường đã an toàn để hiển thị.
-        return ApiResponse.error("BUSINESS_LOGIC_ERROR", ex.getMessage(), ex.getMessage());
-    }
-
-
-    /**
-     * Xử lý các trạng thái tài khoản không hợp lệ như bị khóa, vô hiệu hóa, bị cấm...
-     * Bắt các exception chung của Spring Security: DisabledException, LockedException.
-     * Trả về mã lỗi 403 Forbidden.
-     */
-    @ExceptionHandler({DisabledException.class, LockedException.class})
-    public ResponseEntity<ApiResponse<?>> handleAccountStatusException(AuthenticationException ex) {
-        String errorCode;
-        HttpStatus httpStatus;
-
-        if (ex instanceof LockedException) {
-            // Case 2: SUSPENDED/LOCKED (Bị khóa bởi Admin hoặc do nhập sai nhiều lần)
-            errorCode = "ACCOUNT_LOCKED";
-            httpStatus = HttpStatus.UNAUTHORIZED; // 401 Unauthorized (Lỗi xác thực)
-
-        } else if (ex instanceof DisabledException) {
-            // Case 3: DEACTIVATED, BANNED, DELETED
-            errorCode = "ACCOUNT_DISABLED";
-            httpStatus = HttpStatus.UNAUTHORIZED;
-
-        } else {
-            // Lỗi trạng thái tài khoản không xác định khác
-            errorCode = "ACCOUNT_STATUS_ERROR";
-            httpStatus = HttpStatus.UNAUTHORIZED;
-        }
-
-        ApiResponse<?> apiResponse = ApiResponse.error(
-                errorCode,
-                ex.getMessage() // Thông điệp thân thiện đã được đặt trong AuthUserHandler
-        );
-        return new ResponseEntity<>(apiResponse, httpStatus);
-    }
-
-
-    /**
-     * Bắt tất cả các lỗi hệ thống không mong muốn.
-     * Trả về mã lỗi 500 Internal Server Error.
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiResponse<?> handleGlobalException(Exception ex) {
-        // Log lỗi chi tiết để đội ngũ phát triển xem
-        ex.printStackTrace();
-
-        // Tạo response với 2 loại message
-        String userMessage = "Hệ thống đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.";
-        String devMessage = ex.getMessage(); // Lấy thông điệp gốc của exception
-
-        return ApiResponse.error("SYSTEM_ERROR", userMessage, devMessage);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

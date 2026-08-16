@@ -1,16 +1,12 @@
 package com.cuonglm.ecommerce.backend.core.exception;
 
 /**
- * InvalidLocationDataException – Mô_tả_ngắn_về_lớp.
- *
- * <p>
- * Mô_tả_chi_tiết.
- * </p>
+ * InvalidLocationDataException – Lỗi dữ liệu địa chỉ / vị trí không hợp lệ (HTTP 400).
  *
  * @author cuonglmptit
  * @since Wednesday, 19 November 2025
  */
-public class InvalidLocationDataException extends RuntimeException {
+public class InvalidLocationDataException extends BaseRuntimeException {
     public InvalidLocationDataException(String message) {
         super(message);
     }

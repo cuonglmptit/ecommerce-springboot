@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.core.exception;
 
+import java.util.UUID;
+
 /**
  * ResourceNotFoundException – Lỗi không tìm thấy tài nguyên.
  * <p>
@@ -14,8 +16,15 @@ public class ResourceNotFoundException extends BaseRuntimeException {
         super(message);
     }
 
-    // Constructor tiện ích
     public ResourceNotFoundException(String resourceName, Long id) {
-        super(String.format("%s với ID %d không tìm thấy.", resourceName, id));
+        super(String.format("%s với ID '%d' không tồn tại.", resourceName, id));
+    }
+
+    public ResourceNotFoundException(String resourceName, UUID id) {
+        super(String.format("%s với ID '%s' không tồn tại.", resourceName, id));
+    }
+
+    public ResourceNotFoundException(String resourceName, String fieldName, Object fieldValue) {
+        super(String.format("%s với %s '%s' không tồn tại.", resourceName, fieldName, fieldValue));
     }
 }
