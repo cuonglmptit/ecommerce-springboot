@@ -1,5 +1,11 @@
 package com.cuonglm.ecommerce.backend.location.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
+import jakarta.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.math.BigDecimal;
+
 /**
  * Location – Đại diện cho 1 địa điểm đầy đủ gồm Tỉnh, Huyện, Xã, địa chỉ cụ thể.
  *
@@ -11,23 +17,13 @@ package com.cuonglm.ecommerce.backend.location.entity;
  * @author cuonglmptit
  * @since Friday, 25 July 2025
  */
-
-import com.cuonglm.ecommerce.backend.user.entity.User;
-import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-
 @Entity
 @Table(name = "locations")
+@EntityListeners(AuditingEntityListener.class)
 public class Location {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -45,8 +41,6 @@ public class Location {
     @Column(nullable = false, length = 255)
     private String addressLine;
 
-    // === Mở rộng địa lý để sau này có thể dùng Google Maps APIs ===
-    //Phần này cũng chưa thực sự cần vì hệ thống hiện tại nhỏ, muốn scale dễ nên để sẵn
     @Column(precision = 10, scale = 7)
     private BigDecimal latitude;
 
@@ -59,124 +53,89 @@ public class Location {
     @Column(length = 255)
     private String formattedAddress;
 
-    // Metadata
-    @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private User createdBy;
-
-    @CreatedDate
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modified_by_id")
-    private User modifiedBy;
-
-    @LastModifiedDate
-    private Instant modifiedAt;
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     //<editor-fold desc="Getters/Setters">
-
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Province getProvince() {
         return province;
     }
 
-    public District getDistrict() {
-        return district;
-    }
-
-    public Ward getWard() {
-        return ward;
-    }
-
-    public String getAddressLine() {
-        return addressLine;
-    }
-
-    public BigDecimal getLatitude() {
-        return latitude;
-    }
-
-    public BigDecimal getLongitude() {
-        return longitude;
-    }
-
-    public String getPlaceId() {
-        return placeId;
-    }
-
-    public String getFormattedAddress() {
-        return formattedAddress;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public User getModifiedBy() {
-        return modifiedBy;
-    }
-
-    public Instant getModifiedAt() {
-        return modifiedAt;
-    }
-
     public void setProvince(Province province) {
         this.province = province;
+    }
+
+    public District getDistrict() {
+        return district;
     }
 
     public void setDistrict(District district) {
         this.district = district;
     }
 
+    public Ward getWard() {
+        return ward;
+    }
+
     public void setWard(Ward ward) {
         this.ward = ward;
+    }
+
+    public String getAddressLine() {
+        return addressLine;
     }
 
     public void setAddressLine(String addressLine) {
         this.addressLine = addressLine;
     }
 
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
     public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
     }
 
     public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude;
     }
 
+    public String getPlaceId() {
+        return placeId;
+    }
+
     public void setPlaceId(String placeId) {
         this.placeId = placeId;
+    }
+
+    public String getFormattedAddress() {
+        return formattedAddress;
     }
 
     public void setFormattedAddress(String formattedAddress) {
         this.formattedAddress = formattedAddress;
     }
 
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
+    public AuditMetadata getAudit() {
+        return audit;
     }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+    public void setAudit(AuditMetadata audit) {
+        this.audit = (audit != null) ? audit : new AuditMetadata();
     }
-
-    public void setModifiedBy(User modifiedBy) {
-        this.modifiedBy = modifiedBy;
-    }
-
-    public void setModifiedAt(Instant modifiedAt) {
-        this.modifiedAt = modifiedAt;
-    }
-
     //</editor-fold>
 }
+
