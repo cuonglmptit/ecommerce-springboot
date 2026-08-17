@@ -1,7 +1,9 @@
 package com.cuonglm.ecommerce.backend.shop.entity;
 
-import com.cuonglm.ecommerce.backend.location.entity.Location;
+import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * ShopAddress – Địa chỉ của shop.
@@ -25,9 +27,9 @@ public class ShopAddress {
     @JoinColumn(name = "shop_id", nullable = false, unique = true)
     private Shop shop;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "location_id", nullable = false)
-    private Location location;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "address", columnDefinition = "jsonb", nullable = false)
+    private AddressSnapshot address;
 
     @Column(length = 100)
     private String contactName;

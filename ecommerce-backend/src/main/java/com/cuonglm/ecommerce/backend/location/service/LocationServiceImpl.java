@@ -6,7 +6,7 @@ import com.cuonglm.ecommerce.backend.location.dto.external.DistanceCalculationRe
 import com.cuonglm.ecommerce.backend.location.dto.internal.DistrictInfoDTO;
 import com.cuonglm.ecommerce.backend.location.dto.internal.ProvinceInfoDTO;
 import com.cuonglm.ecommerce.backend.location.dto.internal.WardInfoDTO;
-import com.cuonglm.ecommerce.backend.location.entity.AddressSnapshot;
+import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 import com.cuonglm.ecommerce.backend.location.entity.District;
 import com.cuonglm.ecommerce.backend.location.entity.Province;
 import com.cuonglm.ecommerce.backend.location.entity.Ward;

@@ -5,7 +5,7 @@ import com.cuonglm.ecommerce.backend.location.dto.external.DistanceCalculationRe
 import com.cuonglm.ecommerce.backend.location.dto.internal.DistrictInfoDTO;
 import com.cuonglm.ecommerce.backend.location.dto.internal.ProvinceInfoDTO;
 import com.cuonglm.ecommerce.backend.location.dto.internal.WardInfoDTO;
-import com.cuonglm.ecommerce.backend.location.entity.AddressSnapshot;
+import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 
 import java.math.BigDecimal;
 import java.util.List;

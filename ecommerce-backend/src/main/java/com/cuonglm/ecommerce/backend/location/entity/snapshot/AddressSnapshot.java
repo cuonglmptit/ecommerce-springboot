@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.location.entity;
+package com.cuonglm.ecommerce.backend.location.entity.snapshot;
 
 import com.cuonglm.ecommerce.backend.core.utils.AddressUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 /**
  * AddressSnapshot – Value Object lưu trữ toàn bộ Snapshot địa chỉ dưới dạng JSONB.
- * Nhúng trực tiếp vào UserAddress, ShopAddress, Order.shippingAddress (0 table join).
+ * Nhúng trực tiếp vào UserAddress, ShopAddress, Order.shippingAddress
  *
  * @author cuonglmptit
  * @since Monday, 17 August 2026

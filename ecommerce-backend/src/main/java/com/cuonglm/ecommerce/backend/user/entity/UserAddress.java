@@ -1,11 +1,13 @@
 package com.cuonglm.ecommerce.backend.user.entity;
 
-import com.cuonglm.ecommerce.backend.location.entity.Location;
+import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 import com.cuonglm.ecommerce.backend.user.enums.UserAddressType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * UserAddress – Lớp lưu thông tin địa chỉ của user.
@@ -28,9 +30,9 @@ public class UserAddress {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User user;
 
-    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "location_id", nullable = false)
-    private Location location;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "address", columnDefinition = "jsonb", nullable = false)
+    private AddressSnapshot address;
 
     @Column(length = 100, nullable = false)
     private String title;
