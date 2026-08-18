@@ -29,17 +29,17 @@ public class LocalUserPrincipal extends AbstractBasePrincipal implements UserDet
     //<editor-fold defaultstate="collapsed" desc="Các phương thức của UserDetails">
     @Override
     public String getPassword() {
-        return userSecurityAndProfileDTO.getPasswordHash();
+        return userSecurityAndProfileDTO.passwordHash();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return userSecurityAndProfileDTO.getStatus() != UserStatus.DELETED;
+        return userSecurityAndProfileDTO.status() != UserStatus.DELETED;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        UserStatus status = userSecurityAndProfileDTO.getStatus();
+        UserStatus status = userSecurityAndProfileDTO.status();
         // Tài khoản bị khóa, bị ban, hoặc bị tạm ngừng đều bị coi là "Locked" (hoặc không hợp lệ)
         return status != UserStatus.SUSPENDED && status != UserStatus.BANNED;
     }
@@ -53,7 +53,7 @@ public class LocalUserPrincipal extends AbstractBasePrincipal implements UserDet
     public boolean isEnabled() {
         // Chỉ ACTIVE mới được phép đăng nhập.
         // Mọi trạng thái khác (PENDING, DEACTIVATED, DELETED) sẽ bị chặn bởi DisabledException.
-        return userSecurityAndProfileDTO.getStatus() == UserStatus.ACTIVE;
+        return userSecurityAndProfileDTO.status() == UserStatus.ACTIVE;
     }
     //</editor-fold>
 

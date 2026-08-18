@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.user.repository;
 
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoView;
+import com.cuonglm.ecommerce.backend.user.dto.internal.UserProfileInfoView;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Kỹ thuật projection sử dụng Closed Interface-based Projection Tự động chỉ SELECT các cột có trong UserInfoView
     Optional<UserInfoView> findUserInfoById(Long id);
+
+    Optional<UserProfileInfoView> findProfileInfoById(Long id);
 
     /**
      * Tìm kiếm User theo username hoặc email

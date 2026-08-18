@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.user.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 import com.cuonglm.ecommerce.backend.user.enums.UserAddressType;
 import jakarta.persistence.*;
@@ -37,7 +38,7 @@ public class UserAddress {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String fullName;
 
     @Column(nullable = false)
@@ -46,11 +47,86 @@ public class UserAddress {
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Số điện thoại không hợp lệ")
     private String phoneNumber;
 
-    private boolean isDefault;
+    @Column(name = "is_default", nullable = false)
+    private boolean isDefault = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserAddressType type;
+    private UserAddressType type = UserAddressType.HOME;
 
+    @Column(length = 255)
     private String note;
+
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
+
+    //<editor-fold desc="Getters/Setters">
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
+    }
+
+    public UserAddressType getType() {
+        return type;
+    }
+
+    public void setType(UserAddressType type) {
+        this.type = type;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public AddressSnapshot getAddress() {
+        return address;
+    }
+
+    public void setAddress(AddressSnapshot address) {
+        this.address = address;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
+    //</editor-fold>
 }

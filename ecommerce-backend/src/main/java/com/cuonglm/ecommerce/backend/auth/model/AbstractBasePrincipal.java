@@ -37,32 +37,32 @@ public abstract class AbstractBasePrincipal implements BasePrincipal {
 
     @Override
     public Long getId() {
-        return userSecurityAndProfileDTO.getId();
+        return userSecurityAndProfileDTO.id();
     }
 
     @Override
     public String getUsername() {
-        return userSecurityAndProfileDTO.getUsername();
+        return userSecurityAndProfileDTO.username();
     }
 
     @Override
     public String getEmail() {
-        return userSecurityAndProfileDTO.getEmail();
+        return userSecurityAndProfileDTO.email();
     }
 
     @Override
     public String getAvatarUrl() {
-        return userSecurityAndProfileDTO.getAvatarUrl();
+        return userSecurityAndProfileDTO.avatarUrl();
     }
 
     @Override
     public String getFullName() {
-        return userSecurityAndProfileDTO.getFullName();
+        return userSecurityAndProfileDTO.fullName();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return userSecurityAndProfileDTO.getAuthorities().stream()
+        return userSecurityAndProfileDTO.authorities().stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }

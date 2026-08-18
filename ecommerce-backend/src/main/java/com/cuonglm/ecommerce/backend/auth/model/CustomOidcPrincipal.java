@@ -56,8 +56,8 @@ public class CustomOidcPrincipal extends AbstractBasePrincipal implements OidcUs
     @Override
     public String getName() {
         // 1. Luôn ưu tiên ID DB Local (ID ổn định và duy nhất trong hệ thống của bạn)
-        if (userSecurityAndProfileDTO.getId() != null) {
-            return userSecurityAndProfileDTO.getId().toString();
+        if (userSecurityAndProfileDTO.id() != null) {
+            return userSecurityAndProfileDTO.id().toString();
         }
         // 2. Chỉ dùng ID bên ngoài nếu ID DB chưa tồn tại (ví dụ: ngay sau khi đăng ký lần đầu)
         return oidcUserDelegate.getName();

@@ -38,9 +38,9 @@ public class AuthUserHandler {
     public UserSecurityAndProfileDTO checkAndHandleUserStatus(UserSecurityAndProfileDTO userDTO)
             throws AuthenticationException {
 
-        if (userDTO.getStatus() != UserStatus.ACTIVE) {
+        if (userDTO.status() != UserStatus.ACTIVE) {
             // Logic xử lý lỗi được tập trung tại đây
-            throw mapStatusToAuthenticationException(userDTO.getStatus());
+            throw mapStatusToAuthenticationException(userDTO.status());
         }
         return userDTO;
     }

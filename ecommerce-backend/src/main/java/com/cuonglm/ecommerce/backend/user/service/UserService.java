@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.user.service;
 
+import com.cuonglm.ecommerce.backend.user.dto.external.UpdateUserProfileRequest;
+import com.cuonglm.ecommerce.backend.user.dto.external.UserProfileResponse;
 import com.cuonglm.ecommerce.backend.user.dto.internal.*;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
@@ -115,6 +117,10 @@ public interface UserService {
      * @return User reference
      */
     public User getUserReference(Long userId);
+
+    UserProfileResponse getCurrentUserProfile();
+
+    UserProfileResponse updateCurrentUserProfile(UpdateUserProfileRequest request);
 
     // <editor-fold desc="Các phương thức kiểm tra">
     boolean existsByUsername(String username);
