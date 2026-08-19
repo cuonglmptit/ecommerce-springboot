@@ -21,5 +21,13 @@ public interface ShopInfoView {
 
     ShopStatus getStatus();
 
-    Long getOwnerId();
+    OwnerSummaryInfoView getOwner();
+
+    interface OwnerSummaryInfoView {
+        Long getId();
+    }
+
+    default Long getOwnerId() {
+        return getOwner() != null ? getOwner().getId() : null;
+    }
 }

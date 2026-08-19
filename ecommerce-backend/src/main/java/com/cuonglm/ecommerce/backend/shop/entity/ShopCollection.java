@@ -1,15 +1,11 @@
 package com.cuonglm.ecommerce.backend.shop.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.product.entity.Product;
-import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +21,13 @@ import java.util.List;
  */
 @Entity
 @Table(name = "shop_collections")
+@EntityListeners(AuditingEntityListener.class)
 public class ShopCollection {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     private Shop shop;
 
@@ -55,19 +52,68 @@ public class ShopCollection {
     @Column(nullable = false)
     private BasicStatus status = BasicStatus.ACTIVE;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private User createdBy;
-    @CreatedDate
-    private Instant createdAt;
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
-    @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modified_by_id")
-    private User modifiedBy;
-    @LastModifiedDate
-    private Instant modifiedAt;
+    //<editor-fold desc="Getters/Setters">
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public BasicStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(BasicStatus status) {
+        this.status = status;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
     //</editor-fold>
 }

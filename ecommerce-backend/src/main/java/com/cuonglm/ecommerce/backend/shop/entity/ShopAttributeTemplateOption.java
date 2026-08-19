@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.shop.entity;
 
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import jakarta.persistence.*;
 
 /**
@@ -26,4 +27,37 @@ public class ShopAttributeTemplateOption {
 
     @Column(nullable = false)
     private Integer sortOrder = 0;
+
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
+
+    //<editor-fold desc="Getters/Setters">
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public AttributeOption getOption() {
+        return option;
+    }
+
+    public void setOption(AttributeOption option) {
+        this.option = option;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
+    //</editor-fold>
 }

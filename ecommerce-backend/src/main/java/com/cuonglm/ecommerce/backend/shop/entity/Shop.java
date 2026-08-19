@@ -1,16 +1,13 @@
 package com.cuonglm.ecommerce.backend.shop.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.product.entity.Product;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,8 +39,8 @@ public class Shop {
     private String description;
 
     // Địa chỉ shop (optional)
-    @OneToOne(mappedBy = "shop", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private ShopAddress address;
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ShopAddress> addresses = new ArrayList<>();
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Product> products;
@@ -52,23 +49,8 @@ public class Shop {
     @Column(nullable = false)
     private ShopStatus status = ShopStatus.ACTIVE;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
 
     //<editor-fold desc="Getters/Setters">
@@ -81,36 +63,28 @@ public class Shop {
         return owner;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public ShopAddress getAddress() {
-        return address;
-    }
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public void setAddress(ShopAddress address) {
-        this.address = address;
+    public List<Product> getProducts() {
+        return products;
     }
 
     public void setProducts(List<Product> products) {
@@ -125,5 +99,16 @@ public class Shop {
         this.status = status;
     }
 
+    public List<ShopAddress> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<ShopAddress> addresses) {
+        this.addresses = addresses;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
     //</editor-fold>
 }

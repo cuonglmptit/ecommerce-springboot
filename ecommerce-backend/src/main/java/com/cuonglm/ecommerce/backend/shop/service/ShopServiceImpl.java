@@ -3,8 +3,8 @@ package com.cuonglm.ecommerce.backend.shop.service;
 import com.cuonglm.ecommerce.backend.core.exception.ConflictException;
 import com.cuonglm.ecommerce.backend.core.exception.PermissionDeniedException;
 import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
-import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateRequestDTO;
-import com.cuonglm.ecommerce.backend.shop.dto.external.ShopCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
+import com.cuonglm.ecommerce.backend.shop.dto.external.*;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoView;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
@@ -39,17 +39,134 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public ShopResponse createShop(CreateShopRequest request) {
+        // 1. Xác định User thực hiện và ID chủ sở hữu
+        UserInfoDTO requestUser = userService.getCurrentAuthenticatedUserInfo();
+        Long finalOwnerId = resolveShopOwnerId(request.ownerId(), requestUser);
+
+        // 2. Kiểm tra thông tin chủ Shop
+        UserInfoDTO ownerInfo = finalOwnerId.equals(requestUser.id())
+                ? requestUser
+                : userService.findUserInfoById(finalOwnerId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", finalOwnerId));
+
+        // 3. Mỗi User chỉ được sở hữu tối đa 1 Shop
+        if (shopRepository.existsByOwnerId(ownerInfo.id())) {
+            throw new ConflictException("User ID " + ownerInfo.id() + " đã sở hữu một cửa hàng. Mỗi người dùng chỉ được tạo 1 shop.");
+        }
+
+        // 4. Tài khoản phải ở trạng thái ACTIVE
+        if (ownerInfo.status() != UserStatus.ACTIVE) {
+            throw new ConflictException("Tài khoản chủ shop đang ở trạng thái " + ownerInfo.status() + ", không thể tạo shop.");
+        }
+
+        // 5. Kiểm tra duyệt tự động
+        ShopStatus finalStatus = runAutoApprovalChecks(request, ownerInfo);
+        if (requestUser.isAdmin() && finalStatus == ShopStatus.PENDING) {
+            finalStatus = ShopStatus.ACTIVE;
+        }
+
+        // 6. Lưu Entity Shop
+        Shop shop = new Shop();
+        shop.setName(request.name().trim());
+        shop.setDescription(request.description() != null ? request.description().trim() : null);
+        shop.setStatus(finalStatus);
+
+        User ownerRef = userService.getUserReference(finalOwnerId);
+        shop.setOwner(ownerRef);
+
+        Shop savedShop = shopRepository.save(shop);
+
+        // 7. Cấp Role SELLER cho chủ shop nếu được Active ngay
+        if (finalStatus == ShopStatus.ACTIVE) {
+            userService.grantRoleToUser(finalOwnerId, UserRole.SELLER);
+        }
+
+        // 8. Trả về Response chuẩn qua Static Factory Method (Rule #2)
+        return ShopResponse.fromEntity(savedShop);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ShopResponse getCurrentShop() {
+        Long currentUserId = SecurityUtils.getRequiredCurrentUserId();
+        ShopInfoView view = shopRepository.findShopInfoByOwnerId(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bạn chưa mở cửa hàng nào trên hệ thống."));
+        return ShopResponse.fromView(view);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ShopResponse getShopById(Long shopId) {
+        ShopInfoView view = shopRepository.findShopInfoById(shopId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shop", shopId));
+        return ShopResponse.fromView(view);
+    }
+
+    @Override
+    public ShopResponse updateCurrentShop(UpdateShopRequest request) {
+        Long currentUserId = SecurityUtils.getRequiredCurrentUserId();
+        Shop shop = shopRepository.findByOwnerId(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bạn chưa có cửa hàng để cập nhật."));
+
+        shop.setName(request.name().trim());
+        if (request.description() != null) {
+            shop.setDescription(request.description().trim());
+        }
+
+        Shop savedShop = shopRepository.save(shop);
+        return ShopResponse.fromEntity(savedShop);
+    }
+
+    @Override
+    public void approveShop(Long shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shop", shopId));
+
+        if (shop.getStatus() == ShopStatus.ACTIVE) {
+            return;
+        }
+
+        if (shop.getStatus() != ShopStatus.PENDING) {
+            throw new ConflictException("Shop đang ở trạng thái " + shop.getStatus() + ", không thể duyệt.");
+        }
+
+        shop.setStatus(ShopStatus.ACTIVE);
+        shopRepository.save(shop);
+
+        Long ownerId = shop.getOwner().getId();
+        userService.grantRoleToUser(ownerId, UserRole.SELLER);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ShopInfoDTO> findShopInfoById(Long shopId) {
+        return shopRepository.findShopInfoById(shopId)
+                .map(ShopInfoDTO::fromView);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ShopInfoDTO> findShopInfoByOwnerId(Long ownerId) {
+        return shopRepository.findShopInfoByOwnerId(ownerId)
+                .map(ShopInfoDTO::fromView);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Shop getShopReference(Long shopId) {
+        return shopRepository.getReferenceById(shopId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean hasPermission(Long shopId, ShopPermission requiredPermission) {
         UserInfoDTO currentUser = userService.getCurrentAuthenticatedUserInfo();
 
-        if(currentUser.isAdmin()) return true;
+        if (currentUser.isAdmin()) return true;
 
         ShopInfoDTO shopInfo = findShopInfoById(shopId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Shop ID: " + shopId));
-
-        if (shopInfo.ownerId().equals(currentUser.id())) {
-            return true;
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Shop", shopId));
 
         // Nhân viên / Cộng tác viên (LOGIC MỞ RỘNG SAU NÀY):
         // Lấy danh sách Quyền của Nhân viên này trong ShopID từ bảng ShopStaff/ShopRole
@@ -57,10 +174,11 @@ public class ShopServiceImpl implements ShopService {
         // Set<ShopPermission> staffPermissions = shopStaffRepository.findPermissions(shopId, currentUser.id());
         // return staffPermissions.contains(requiredPermission);
 
-        return false;
+        return shopInfo.ownerId().equals(currentUser.id());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validatePermission(Long shopId, ShopPermission requiredPermission) {
         if (!hasPermission(shopId, requiredPermission)) {
             throw new PermissionDeniedException(
@@ -69,176 +187,26 @@ public class ShopServiceImpl implements ShopService {
         }
     }
 
-    @Override
-    public ShopCreateResponseDTO createShop(ShopCreateRequestDTO request) {
-        // 1. Lấy User đang thực hiện request và xác định owner
-        UserInfoDTO requestUser = userService.getCurrentAuthenticatedUserInfo();
-        Long finalOwnerId = resolveShopOwnerId(request.getOwnerId(), requestUser);
-
-        // 2. Xác định thông tin chủ Shop (ownerInfo)
-        UserInfoDTO ownerInfo = finalOwnerId.equals(requestUser.id())
-                ? requestUser
-                : userService.findUserInfoById(finalOwnerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin chủ sở hữu shop: " + finalOwnerId));
-
-        // 3. Kiểm tra có thể tạo shop hay không
-        if (shopRepository.findByOwnerId(ownerInfo.id()).isPresent()) {
-            throw new ConflictException("User ID " + ownerInfo.id() + " đã sở hữu một cửa hàng. Mỗi người dùng chỉ được sở hữu 1 shop.");
-        }
-
-        // 2. Kiểm tra cơ bản User phải là ACTIVE
-        if (ownerInfo.status() != UserStatus.ACTIVE) {
-            // Ném lỗi và dừng transaction ngay lập tức, không tạo Shop Entity
-            throw new ConflictException("Không thể tạo cửa hàng vì tài khoản chủ shop (" + ownerInfo.id() + ") đang ở trạng thái: " + ownerInfo.status());
-        }
-
-
-        ShopStatus finalStatus = runAutoApprovalChecks(request, ownerInfo);
-
-        if (requestUser.isAdmin() && finalStatus == ShopStatus.PENDING) {
-            finalStatus = ShopStatus.ACTIVE;
-        }
-
-        // 5. Mapping DTO to Entity
-        Shop shop = new Shop();
-        shop.setName(request.getName());
-        shop.setDescription(request.getDescription());
-        shop.setStatus(finalStatus);
-        // Entity User để gán vào Shop: Dùng finalOwnerId đã xác định
-        User ownerRef = new User();
-        ownerRef.setId(finalOwnerId);
-        shop.setOwner(ownerRef);
-
-        // 6. Lưu Shop
-        Shop savedShop = shopRepository.save(shop);
-
-        // 7. Cấp role cho user nếu được duyệt tự động
-        if (finalStatus == ShopStatus.ACTIVE) {
-            userService.grantRoleToUser(finalOwnerId, UserRole.SELLER);
-        }
-
-        // 8. Trả về kết quả
-        return mapToShopResponse(savedShop);
-    }
-
-    /**
-     * Xác định xem owner của shop sẽ là ai
-     *
-     * @param requestedOwnerId id của owner gửi kèm shop
-     * @param requestUser      thông tin của người gửi request
-     * @return nếu như là admin gửi request thì sẽ trả về requestedOwnerId,
-     * nếu mà người gửi request trùng id với id trong requestedOwnerId thì sẽ trả về requestedOwnerId.
-     * Còn nếu như mà user id=A lại gửi request để tạo shop với ownerId=B thì sẽ ném lỗi
-     */
     private Long resolveShopOwnerId(Long requestedOwnerId, UserInfoDTO requestUser) {
-        // Trường hợp 1: Không có ownerId trong request (User tự tạo)
         if (requestedOwnerId == null) {
-            return requestUser.id(); // Owner là chính người đang request
+            return requestUser.id();
         }
-
-        // Trường hợp 2: Có ownerId và requestUser là Admin/Moderator
         if (requestUser.isAdmin()) {
             return requestedOwnerId;
         }
-
-        // Trường hợp 3: User thường cố gắng tạo Shop cho người khác
         if (!requestedOwnerId.equals(requestUser.id())) {
             throw new PermissionDeniedException("Bạn không có quyền tạo cửa hàng cho người dùng khác.");
         }
-
-        // Trường hợp 4: User tự tạo Shop và chỉ rõ ID của chính mình (requestedOwnerId == requestUser.id())
         return requestUser.id();
     }
 
-    // Helper mapper
-    private ShopCreateResponseDTO mapToShopResponse(Shop shop) {
-        ShopCreateResponseDTO response = new ShopCreateResponseDTO();
-        response.setId(shop.getId());
-        response.setName(shop.getName());
-        response.setDescription(shop.getDescription());
-        // Lưu ý: shop.getOwner() có thể là Lazy Proxy, chỉ lấy ID là an toàn nhất
-        response.setOwnerId(shop.getOwner().getId());
-        response.setStatus(shop.getStatus());
-        return response;
-    }
-
-    /**
-     * Chạy để kiểm tra và trả về trạng thái ban đầu của shop
-     *
-     * @param request Thông tin về request tạo shop
-     * @param owner   Thông tin chủ shop
-     * @return Trạng thái ban đầu của shop
-     */
-    private ShopStatus runAutoApprovalChecks(ShopCreateRequestDTO request, UserInfoDTO owner) {
-        // 1. Kiểm tra xác minh: Phải xác minh Email hoặc SĐT
+    private ShopStatus runAutoApprovalChecks(CreateShopRequest request, UserInfoDTO owner) {
         if (!owner.isEmailVerified() && !owner.isPhoneVerified()) {
-            // Nếu chưa xác minh cả hai, cần Admin duyệt thủ công
             return ShopStatus.PENDING;
         }
-
-        // 2. Kiểm tra dữ liệu: Tên Shop phải hợp lệ
-        if (request.getName() == null || request.getName().trim().length() < 6) {
-            // Yêu cầu tên Shop dài hơn 6 ký tự
+        if (request.name() == null || request.name().trim().length() < 3) {
             return ShopStatus.PENDING;
         }
-
-        // 3. Nếu vượt qua các kiểm tra tự động
         return ShopStatus.ACTIVE;
-    }
-
-
-    /**
-     * Logic chấp nhận một Shop. Phương thức này yêu cầu quyền ADMIN/MODERATOR.
-     *
-     * @param shopId ID của Shop cần duyệt
-     */
-    @Override
-    public void approveShop(Long shopId) {
-        // 1. Tìm và kiểm tra Shop
-        Shop shop = shopRepository.findById(shopId)
-                .orElseThrow(() -> new ResourceNotFoundException("Shop ID " + shopId + " không tồn tại."));
-
-        if (shop.getStatus() == ShopStatus.ACTIVE) {
-            // Đã duyệt rồi thì không cần làm gì
-            return;
-        }
-
-        if (shop.getStatus() != ShopStatus.PENDING) {
-            throw new ConflictException("Shop đang ở trạng thái " + shop.getStatus() + ", không thể duyệt.");
-        }
-
-        // 2. Chuyển trạng thái Shop thành APPROVED
-        shop.setStatus(ShopStatus.ACTIVE);
-        shopRepository.save(shop);
-
-        // 3. CẤP ROLE SELLER cho User sở hữu Shop
-        Long ownerId = shop.getOwner().getId();
-        userService.grantRoleToUser(ownerId, UserRole.SELLER);
-    }
-
-    @Override
-    public Optional<ShopInfoDTO> findShopInfoById(Long shopId) {
-        return shopRepository.findShopInfoById(shopId).map(this::mapToShopInfoDTO);
-    }
-
-    @Override
-    public Shop getShopReference(Long shopId) {
-        return shopRepository.getReferenceById(shopId);
-    }
-
-    @Override
-    public Optional<ShopInfoDTO> findShopInfoByOwnerId(Long ownerId) {
-        return shopRepository.findShopInfoByOwnerId(ownerId).map(this::mapToShopInfoDTO);
-    }
-
-    //Helper
-    private ShopInfoDTO mapToShopInfoDTO(ShopInfoView view) {
-        return new ShopInfoDTO(
-                view.getId(),
-                view.getName(),
-                view.getDescription(),
-                view.getStatus(),
-                view.getOwnerId()
-        );
     }
 }
