@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.attribute.dto.external;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,23 +14,23 @@ import java.util.UUID;
  * @author cuonglmptit
  * @since Tuesday, 02 December 2025
  */
-public record AttributeCreateResponseDTO(
+public record AttributeResponse(
         UUID id,
         String name,
-        String code, // Code (do hệ thống tạo) là cần thiết cho các service gọi API
+        String code,
+        AttributeType type,
         AttributeScope scope,
         AttributeStatus status,
-        Long shopId, // ID của Shop sở hữu (null nếu GLOBAL)
-
-        // Danh sách các Option của Attribute này
-        List<AttributeOptionCreateResponseDTO> options
+        Long shopId,
+        List<AttributeOptionResponse> options
 ) {
-    public static AttributeCreateResponseDTO fromEntity(Attribute attribute, List<AttributeOptionCreateResponseDTO> options) {
+    public static AttributeResponse fromEntity(Attribute attribute, List<AttributeOptionResponse> options) {
         if (attribute == null) return null;
-        return new AttributeCreateResponseDTO(
+        return new AttributeResponse(
                 attribute.getId(),
                 attribute.getName(),
                 attribute.getCode(),
+                attribute.getType(),
                 attribute.getScope(),
                 attribute.getStatus(),
                 attribute.getShop() != null ? attribute.getShop().getId() : null,

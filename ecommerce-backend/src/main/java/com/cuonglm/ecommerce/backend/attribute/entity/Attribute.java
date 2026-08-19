@@ -3,15 +3,11 @@ package com.cuonglm.ecommerce.backend.attribute.entity;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,23 +63,8 @@ public class Attribute {
     @Enumerated(EnumType.STRING)
     private AttributeStatus status = AttributeStatus.ACTIVE;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     //<editor-fold desc="Getters/Setters">
 
@@ -149,6 +130,10 @@ public class Attribute {
 
     public void setStatus(AttributeStatus status) {
         this.status = status;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
     }
 
     //</editor-fold>

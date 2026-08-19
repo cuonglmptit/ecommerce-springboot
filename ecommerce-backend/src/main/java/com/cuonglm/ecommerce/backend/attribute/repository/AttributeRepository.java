@@ -42,6 +42,8 @@ public interface AttributeRepository extends JpaRepository<Attribute, UUID> {
 
     Optional<Attribute> findByShopIdAndCode(Long shopId, String code);
 
+    Optional<Attribute> findByCodeAndScope(String code, AttributeScope scope);
+
     /**
      * Tìm kiếm và lọc danh sách thuộc tính (Attribute) theo nhiều tiêu chí động.
      * <p>

@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.attribute.dto.internal;
 
+import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
@@ -22,17 +23,28 @@ public record AttributeInfoDTO(
         AttributeType type
 ) {
     public static AttributeInfoDTO fromView(AttributeInfoView view) {
-        if (view == null) {
-            return null;
-        }
+        if (view == null) return null;
         return new AttributeInfoDTO(
                 view.getId(),
                 view.getName(),
                 view.getCode(),
                 view.getScope(),
-                (view.getShop() != null) ? view.getShop().getId() : null,
+                view.getShop() != null ? view.getShop().getId() : null,
                 view.getStatus(),
                 view.getType()
+        );
+    }
+
+    public static AttributeInfoDTO fromEntity(Attribute entity) {
+        if (entity == null) return null;
+        return new AttributeInfoDTO(
+                entity.getId(),
+                entity.getName(),
+                entity.getCode(),
+                entity.getScope(),
+                entity.getShop() != null ? entity.getShop().getId() : null,
+                entity.getStatus(),
+                entity.getType()
         );
     }
 }

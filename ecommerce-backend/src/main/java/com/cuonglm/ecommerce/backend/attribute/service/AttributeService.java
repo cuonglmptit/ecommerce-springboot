@@ -1,7 +1,9 @@
 package com.cuonglm.ecommerce.backend.attribute.service;
 
-import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateRequestDTO;
-import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttachAttributeOptionRequest;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeOptionResponse;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeResponse;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.CreateAttributeRequest;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
@@ -30,10 +32,11 @@ public interface AttributeService {
     /**
      * Tạo một Attribute mới
      *
-     * @param attrDTO DTO request để tạo Attribute
-     * @return Thông tin việc tạo Attribute trong {@link AttributeCreateResponseDTO}
+     * @param shopId
+     * @param request
+     * @return
      */
-    AttributeCreateResponseDTO createAttribute(AttributeCreateRequestDTO attrDTO);
+    AttributeResponse createAttribute(Long shopId, CreateAttributeRequest request);
 
     /**
      * Tìm thông tin về một {@link Attribute} được trả về qua {@link AttributeInfoDTO}
@@ -42,6 +45,8 @@ public interface AttributeService {
      * @return Một {@link AttributeInfoDTO} chứa thông tin hoặc {@link Optional#empty()}
      */
     Optional<AttributeInfoDTO> findAttributeInfoById(UUID uuid);
+
+    List<AttributeOptionResponse> attachOptions(Long shopId, AttachAttributeOptionRequest request);
 
     /**
      * Tìm thông tin về một {@link AttributeOption} được trả về qua {@link AttributeOptionInfoDTO}

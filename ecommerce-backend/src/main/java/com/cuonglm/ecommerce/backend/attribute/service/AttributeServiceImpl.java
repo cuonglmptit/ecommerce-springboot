@@ -1,8 +1,6 @@
 package com.cuonglm.ecommerce.backend.attribute.service;
 
-import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateRequestDTO;
-import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeCreateResponseDTO;
-import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeOptionCreateResponseDTO;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.*;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
@@ -55,13 +53,70 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttributeReference(UUID id) {
         return attributeRepository.getReferenceById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AttributeOption getAttributeOptionReference(UUID id) {
         return attributeOptionRepository.getReferenceById(id);
+    }
+
+    @Override
+    public AttributeResponse createAttribute(Long shopId, CreateAttributeRequest request) {
+        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
+        Shop shopRef = shopService.getShopReference(shopId);
+
+        String attributeCode = NamingUtils.toConstantName(request.name().trim());
+
+        if (attributeRepository.existsByShopIdAndCode(shopId, attributeCode)) {
+            throw new ConflictException("Thuộc tính với mã '" + attributeCode + "' đã tồn tại trong Shop.");
+        }
+
+        Attribute attribute = new Attribute();
+        attribute.setName(request.name().trim());
+        attribute.setCode(attributeCode);
+        attribute.setType(request.type());
+        attribute.setScope(AttributeScope.SHOP);
+        attribute.setShop(shopRef);
+        attribute.setStatus(AttributeStatus.ACTIVE);
+
+        Attribute savedAttribute = attributeRepository.save(attribute);
+
+        List<AttributeOption> savedOptions = new ArrayList<>();
+        if (request.initialOptions() != null && !request.initialOptions().isEmpty()) {
+            List<AttributeOption> newOptions = request.initialOptions().stream()
+                    .map(optReq -> AttributeOption.of(savedAttribute, optReq.value().trim()))
+                    .toList();
+            savedOptions = attributeOptionRepository.saveAll(newOptions);
+        }
+
+        List<AttributeOptionResponse> optionResponses = savedOptions.stream()
+                .map(AttributeOptionResponse::fromEntity)
+                .toList();
+
+        return AttributeResponse.fromEntity(savedAttribute, optionResponses);
+    }
+
+    @Override
+    public List<AttributeOptionResponse> attachOptions(Long shopId, AttachAttributeOptionRequest request) {
+        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
+
+        Attribute attribute = attributeRepository.findById(request.attributeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thuộc tính với ID: " + request.attributeId()));
+
+        List<AttributeOption> optionsToSave = request.newOptions().stream()
+                .map(optReq -> {
+                    String cleanVal = optReq.value().trim();
+                    return attributeOptionRepository.findByAttributeAndValueIgnoreCase(attribute, cleanVal)
+                            .orElseGet(() -> AttributeOption.of(attribute, cleanVal));
+                })
+                .toList();
+
+        List<AttributeOption> saved = attributeOptionRepository.saveAll(optionsToSave);
+        return saved.stream().map(AttributeOptionResponse::fromEntity).toList();
     }
 
 
@@ -131,10 +186,13 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AttributeOptionInfoDTO> searchOptionsByAttributeName(Long shopId, String attributeName, String query, AttributeType type) {
-        if (shopId != null) {
-            shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_WRITE);
-        }
+    public List<AttributeOptionInfoDTO> searchOptionsByAttributeName(
+            Long shopId,
+            String attributeName,
+            String query,
+            AttributeType type
+    ) {
+        shopService.validatePermission(shopId, ShopPermission.ATTRIBUTE_READ);
 
         List<AttributeType> types = (type != null) ? List.of(type) : null;
 
@@ -148,56 +206,6 @@ public class AttributeServiceImpl implements AttributeService {
                 .stream()
                 .map(AttributeOptionInfoDTO::fromView)
                 .toList();
-    }
-
-    @Override
-    public AttributeCreateResponseDTO createAttribute(AttributeCreateRequestDTO attrDTO) {
-        // 1. Lấy thông tin người dùng và xác định phạm vi (Scope)
-        UserInfoDTO currentUser = userService.getCurrentAuthenticatedUserInfo();
-        ShopInfoDTO shopInfo = shopService.findShopInfoByOwnerId(currentUser.id())
-                .orElseThrow(() -> new ResourceNotFoundException("Không thể tạo Attribute do tài khoản này không sở hữu Shop."));
-
-        // Mặc định: Attribute do người dùng tạo là SHOP-SCOPED
-        AttributeScope scope = AttributeScope.SHOP;
-        Shop shopRef = shopService.getShopReference(shopInfo.id());
-
-        // 2. Chuẩn hóa và Tạo Code (Ví dụ: "Màu sắc" -> "MAU_SAC")
-        String attributeCode = NamingUtils.toConstantName(attrDTO.name());
-
-        // 3. Kiểm tra tính Duy nhất (Unique Constraint)
-        // Kiểm tra Code đã tồn tại trong phạm vi Shop này chưa
-        if (attributeRepository.existsByShopIdAndCode(shopInfo.id(), attributeCode)) {
-            throw new ConflictException("Attribute với tên/code '" + attributeCode + "' đã tồn tại trong Shop này.");
-        }
-
-        // 4. Tạo Entity Attribute
-        Attribute attribute = new Attribute();
-        attribute.setName(attrDTO.name());
-        attribute.setCode(attributeCode);
-        attribute.setScope(scope);
-        attribute.setShop(shopRef);
-        attribute.setStatus(AttributeStatus.ACTIVE); // Mặc định ACTIVE
-
-        // 5. Lưu Attribute Cha
-        Attribute savedAttribute = attributeRepository.save(attribute);
-
-        // 6. Xử lý và Lưu Attribute Options (Con)
-        List<AttributeOption> savedOptions = new ArrayList<>();
-        if (attrDTO.initialOptions() != null && !attrDTO.initialOptions().isEmpty()) {
-            List<AttributeOption> newOptions = attrDTO.initialOptions().stream()
-                    .map(optionDTO -> AttributeOption.of(savedAttribute, optionDTO.value()))
-                    .toList();
-
-            // Lưu Options trong một Query (tối ưu hơn so với save từng cái)
-            savedOptions = attributeOptionRepository.saveAll(newOptions);
-        }
-
-        // 7. Map sang Response DTO (Sử dụng stream API)
-        List<AttributeOptionCreateResponseDTO> optionResponses = savedOptions.stream()
-                .map(AttributeOptionCreateResponseDTO::fromEntity)
-                .toList();
-
-        return AttributeCreateResponseDTO.fromEntity(savedAttribute, optionResponses);
     }
 
     @Override

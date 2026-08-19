@@ -2,15 +2,11 @@ package com.cuonglm.ecommerce.backend.attribute.entity;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -39,11 +35,11 @@ public class AttributeOption {
 //    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "attribute_id", nullable = false)
     private Attribute attribute;
 
-    @Column(nullable = false, name = "value")
+    @Column(name = "value", nullable = false, length = 255)
     private String value; // Ví dụ: Đỏ, Đen, L, XL
 
     @Enumerated(EnumType.STRING)
@@ -53,28 +49,12 @@ public class AttributeOption {
     @Enumerated(EnumType.STRING)
     private AttributeStatus status = AttributeStatus.ACTIVE;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
-
-    //<editor-fold desc="Getters/Setters">
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id")
     private Shop shop; // null nếu GLOBAL
+
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     public static AttributeOption of(Attribute attribute, String value) {
         AttributeOption option = new AttributeOption();
@@ -86,20 +66,38 @@ public class AttributeOption {
         return option;
     }
 
+    //<editor-fold desc="Getters/Setters">
+
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public Attribute getAttribute() {
         return attribute;
     }
 
+    public void setAttribute(Attribute attribute) {
+        this.attribute = attribute;
+    }
+
     public String getValue() {
         return value;
     }
 
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     public AttributeScope getScope() {
         return scope;
+    }
+
+    public void setScope(AttributeScope scope) {
+        this.scope = scope;
     }
 
     public Shop getShop() {
@@ -110,22 +108,6 @@ public class AttributeOption {
         this.shop = shop;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setAttribute(Attribute attribute) {
-        this.attribute = attribute;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public void setScope(AttributeScope scope) {
-        this.scope = scope;
-    }
-
     public AttributeStatus getStatus() {
         return status;
     }
@@ -134,5 +116,8 @@ public class AttributeOption {
         this.status = status;
     }
 
+    public AuditMetadata getAudit() {
+        return audit;
+    }
     //</editor-fold>
 }

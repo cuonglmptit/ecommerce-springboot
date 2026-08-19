@@ -12,16 +12,16 @@ import java.util.UUID;
  * @author cuonglmptit
  * @since Tuesday, 02 December 2025
  */
-public record AttributeOptionCreateResponseDTO(
+public record AttributeOptionResponse(
         UUID id,
         String value,
         AttributeScope scope,
         AttributeStatus status,
         Long shopId
 ) {
-    public static AttributeOptionCreateResponseDTO fromEntity(AttributeOption opt) {
+    public static AttributeOptionResponse fromEntity(AttributeOption opt) {
         if (opt == null) return null;
-        return new AttributeOptionCreateResponseDTO(
+        return new AttributeOptionResponse(
                 opt.getId(),
                 opt.getValue(),
                 opt.getScope(),

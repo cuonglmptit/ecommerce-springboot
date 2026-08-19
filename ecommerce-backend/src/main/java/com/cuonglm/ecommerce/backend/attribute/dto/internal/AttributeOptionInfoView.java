@@ -13,16 +13,18 @@ import java.util.UUID;
  */
 public interface AttributeOptionInfoView {
     UUID getId();
-
     String getValue();
-
-    UUID getAttributeId();
-
-    Long getShopId();
-
-    String getAttributeName();
-
+    AttributeSummaryInfoView getAttribute();
+    ShopSummaryInfoView getShop();
     AttributeScope getScope();
-
     AttributeStatus getStatus();
+
+    interface AttributeSummaryInfoView {
+        UUID getId();
+        String getName();
+    }
+
+    interface ShopSummaryInfoView {
+        Long getId();
+    }
 }

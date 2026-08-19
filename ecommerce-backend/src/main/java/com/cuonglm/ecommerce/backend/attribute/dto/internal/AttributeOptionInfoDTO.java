@@ -22,15 +22,13 @@ public record AttributeOptionInfoDTO(
         AttributeStatus status
 ) {
     public static AttributeOptionInfoDTO fromView(AttributeOptionInfoView view) {
-        if (view == null) {
-            return null;
-        }
+        if (view == null) return null;
         return new AttributeOptionInfoDTO(
                 view.getId(),
                 view.getValue(),
-                view.getAttributeId(),
-                view.getAttributeName(),
-                view.getShopId(),
+                view.getAttribute() != null ? view.getAttribute().getId() : null,
+                view.getAttribute() != null ? view.getAttribute().getName() : null,
+                view.getShop() != null ? view.getShop().getId() : null,
                 view.getScope(),
                 view.getStatus()
         );

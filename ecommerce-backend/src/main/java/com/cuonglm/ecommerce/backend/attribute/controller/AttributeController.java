@@ -1,5 +1,9 @@
 package com.cuonglm.ecommerce.backend.attribute.controller;
 
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttachAttributeOptionRequest;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeOptionResponse;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeResponse;
+import com.cuonglm.ecommerce.backend.attribute.dto.external.CreateAttributeRequest;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
@@ -7,11 +11,10 @@ import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.attribute.service.AttributeService;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +33,30 @@ public class AttributeController {
 
     public AttributeController(AttributeService attributeService) {
         this.attributeService = attributeService;
+    }
+
+    /**
+     * API Tạo mới Attribute cho Shop (kèm Options khởi tạo nếu có)
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse<AttributeResponse>> createAttribute(
+            @RequestParam Long shopId,
+            @Valid @RequestBody CreateAttributeRequest request
+    ) {
+        AttributeResponse response = attributeService.createAttribute(shopId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+    }
+
+    /**
+     * API Gắn thêm Options mới vào Attribute đã có
+     */
+    @PostMapping("/options")
+    public ResponseEntity<ApiResponse<List<AttributeOptionResponse>>> attachOptions(
+            @RequestParam Long shopId,
+            @Valid @RequestBody AttachAttributeOptionRequest request
+    ) {
+        List<AttributeOptionResponse> response = attributeService.attachOptions(shopId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     /**
