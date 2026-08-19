@@ -91,10 +91,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryTreeNodeDTO> getCategoryTree() {
-        // 1. Chỉ phát sinh 1 câu SQL duy nhất
+        // 1. Chỉ phát sinh 1 câu SQL
         List<CategoryInfoView> flatCategories = categoryRepository.findAllActiveCategories(BasicStatus.ACTIVE);
 
-        // 2. Nhóm danh mục con theo parent.id an toàn
+        // 2. Nhóm danh mục con theo parent.id
         Map<Long, List<CategoryInfoView>> childrenMap = flatCategories.stream()
                 .filter(c -> c.getParent() != null && c.getParent().getId() != null)
                 .collect(Collectors.groupingBy(c -> c.getParent().getId()));

@@ -1,11 +1,7 @@
 package com.cuonglm.ecommerce.backend.category.dto.internal;
 
 /**
- * CategoryInfoDTO – Mô_tả_ngắn_về_lớp.
- *
- * <p>
- * Mô_tả_chi_tiết.
- * </p>
+ * CategoryInfoDTO – DTO thông tin category
  *
  * @author cuonglmptit
  * @since Friday, 28 November 2025
@@ -17,6 +13,7 @@ public record CategoryInfoDTO(
         String path,
         Integer depth,
         Integer sortOrder,
+        Long parentId,
         Boolean hasChildren
 ) {
     public static CategoryInfoDTO fromView(CategoryInfoView view) {
@@ -30,7 +27,8 @@ public record CategoryInfoDTO(
                 view.getPath(),
                 view.getDepth(),
                 view.getSortOrder(),
-                view.getHasChildren()
+                view.getParent() != null ? view.getParent().getId() : null,
+                view.getHasChildren() != null && view.getHasChildren()
         );
     }
 }

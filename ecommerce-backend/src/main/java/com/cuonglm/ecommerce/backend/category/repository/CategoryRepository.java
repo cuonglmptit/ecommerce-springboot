@@ -19,11 +19,11 @@ import java.util.Optional;
  */
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
     Optional<CategoryInfoView> findCategoryInfoById(Long categoryId);
 
     Optional<Category> findByName(String catName);
 
-    // 1. Lấy danh mục gốc (Level 0)
     @Query("""
         SELECT c FROM Category c
         WHERE c.parent IS NULL AND c.status = :status
@@ -31,7 +31,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     """)
     List<CategoryInfoView> findRootCategories(@Param("status") BasicStatus status);
 
-    // 2. Lấy danh mục con trực tiếp theo parentId
     @Query("""
         SELECT c FROM Category c
         WHERE c.parent.id = :parentId AND c.status = :status
@@ -39,7 +38,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     """)
     List<CategoryInfoView> findChildrenCategories(@Param("parentId") Long parentId, @Param("status") BasicStatus status);
 
-    // 3. Tìm kiếm danh mục theo tên cho Typeahead
     @Query("""
         SELECT c FROM Category c
         WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) AND c.status = :status

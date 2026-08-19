@@ -12,12 +12,12 @@ import java.util.UUID;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record CategoryMediaSnapshot (
-    UUID meidaId,
-    String url,
-    boolean isThumbnail,
-    int sortOrder
-){
+public record CategoryMediaSnapshot(
+        UUID mediaId,
+        String url,
+        boolean isThumbnail,
+        int sortOrder
+) {
     public static CategoryMediaSnapshot of(UUID mediaId, String url, boolean isThumbnail, int sortOrder) {
         return new CategoryMediaSnapshot(mediaId, url, isThumbnail, sortOrder);
     }

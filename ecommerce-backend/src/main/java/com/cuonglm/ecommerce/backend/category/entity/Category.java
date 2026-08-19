@@ -1,17 +1,13 @@
 package com.cuonglm.ecommerce.backend.category.entity;
 
 import com.cuonglm.ecommerce.backend.category.entity.snapshot.CategoryMediaSnapshot;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +45,6 @@ public class Category {
     @Column(nullable = false)
     private String path;
 
-    //<editor-fold desc="Parent-Child self-reference">
     // Quan hệ self-reference (không bắt buộc trong Materialized Path, nhưng hữu ích để duyệt lên xuống dễ)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
@@ -57,7 +52,9 @@ public class Category {
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> children = new ArrayList<>();
-    //</editor-fold>
+
+    @Column(name = "has_children", nullable = false)
+    private Boolean hasChildren = false;
 
     // Tiện truy vấn filter theo level nếu cần
     @Column(nullable = false)
@@ -70,23 +67,53 @@ public class Category {
     @Column(nullable = false)
     private BasicStatus status = BasicStatus.ACTIVE;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    public void addChild(Category child) {
+        if (child != null) {
+            // Nếu child đã có parent cũ, phải xóa child khỏi parent cũ trước
+            if (child.getParent() != null && !child.getParent().equals(this)) {
+                child.getParent().removeChild(child);
+            }
 
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
+            this.children.add(child);
+            child.setParent(this);
+            this.hasChildren = true; // Cha mới bật cờ
+        }
+    }
 
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
+    public void removeChild(Category child) {
+        if (child != null) {
+            this.children.remove(child);
+            child.setParent(null);
+            this.hasChildren = !this.children.isEmpty(); // Tự tắt cờ nếu không còn con nào
+        }
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.sortOrder == null) this.sortOrder = 0;
+        if (this.status == null) this.status = BasicStatus.ACTIVE;
+        if (this.media == null) this.media = new ArrayList<>();
+
+        this.hasChildren = (this.children != null && !this.children.isEmpty());
+        if (this.parent != null) {
+            this.depth = (this.parent.getDepth() != null ? this.parent.getDepth() : 0) + 1;
+        } else {
+            this.depth = 0;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.hasChildren = (this.children != null && !this.children.isEmpty());
+        if (this.parent != null) {
+            this.depth = (this.parent.getDepth() != null ? this.parent.getDepth() : 0) + 1;
+        } else {
+            this.depth = 0;
+        }
+    }
 
     //<editor-fold desc="Getter/Setters">
     public Long getId() {
@@ -167,6 +194,18 @@ public class Category {
 
     public void setStatus(BasicStatus status) {
         this.status = status;
+    }
+
+    public Boolean getHasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(Boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
     }
     //</editor-fold>
 }

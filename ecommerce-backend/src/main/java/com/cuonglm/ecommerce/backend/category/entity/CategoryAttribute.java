@@ -2,7 +2,9 @@ package com.cuonglm.ecommerce.backend.category.entity;
 
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.category.enums.FilterType;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import jakarta.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * CategoryAttribute – Liên kết đến các Attribute liên quan đến ngành hàng này.
@@ -21,18 +23,18 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = {"category_id", "attribute_id"})
         }
 )
-
+@EntityListeners(AuditingEntityListener.class)
 public class CategoryAttribute {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     // Chỉ liên kết với global attribute
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "attribute_id", nullable = false)
     private Attribute attribute;
 
@@ -46,6 +48,9 @@ public class CategoryAttribute {
     @Column(name = "filter_type")
     @Enumerated(EnumType.STRING)
     private FilterType filterType = FilterType.CHECKBOX;
+
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     // <editor-fold desc="Getters/Setters">
 
@@ -97,5 +102,8 @@ public class CategoryAttribute {
         this.filterType = filterType;
     }
 
+    public AuditMetadata getAudit() {
+        return audit;
+    }
     // </editor-fold>
 }
