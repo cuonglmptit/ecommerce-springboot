@@ -3,7 +3,7 @@ package com.cuonglm.ecommerce.backend.auth.dto.external.user;
 import jakarta.validation.constraints.*;
 
 /**
- * UserRegisterRequestDTO – Lớp nhận json để đăng ký người dùng mới của endpoint /register.
+ * RegisterUserRequest – Lớp nhận json để đăng ký người dùng mới của endpoint /register.
  *
  * <p>
  * Nhận dữ liệu từ json trong request body sang DTO này để sử dụng trong controller.
@@ -12,9 +12,10 @@ import jakarta.validation.constraints.*;
  * @author cuonglmptit
  * @since Friday, 08 August 2025
  */
-public record UserRegisterRequestDTO(
-        @NotBlank(message = "Tên người dùng không được để trống")
-        @Size(min = 3, max = 50, message = "Tên người dùng phải từ 3 đến 50 ký tự")
+public record RegisterUserRequest(
+        @NotBlank(message = "Tên đăng nhập không được để trống")
+        @Size(min = 3, max = 50, message = "Tên đăng nhập phải từ 3 đến 50 ký tự")
+        @Pattern(regexp = "^[a-zA-Z0-9_.]+$", message = "Username chỉ được chứa chữ cái, số, dấu gạch dưới và dấu chấm")
         String username,
 
         @NotBlank(message = "Email không được để trống")

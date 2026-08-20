@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.service.otp;
 
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequest;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpChannel;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;
@@ -42,7 +42,7 @@ public interface OtpService {
      * @param otpToken OtpToken Entity cần xác thực.
      * @return boolean True nếu mã hợp lệ, ngược lại False.
      */
-    boolean validateOtp(VerifyOtpRequestDTO otpToken);
+    boolean validateOtp(VerifyOtpRequest otpToken);
 
     /**
      * Phương thức tiện ích để thực hiện cả 3 bước (Generate, Save Channel, Send).

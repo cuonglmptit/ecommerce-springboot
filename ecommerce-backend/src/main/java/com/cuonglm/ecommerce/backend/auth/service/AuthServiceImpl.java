@@ -1,9 +1,9 @@
 package com.cuonglm.ecommerce.backend.auth.service;
 
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterUserRequest;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpChannel;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;
@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
      * @return OtpToken đã được tạo.
      */
     @Override
-    public OtpToken requestRegistrationOtp(UserRegisterRequestDTO request) {
+    public OtpToken requestRegistrationOtp(RegisterUserRequest request) {
         String username = request.username();
         String email = request.email();
 
@@ -79,13 +79,13 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Xác thực OTP và tạo User Entity.
      *
-     * @param request DTO {@link RegisterAndVerifyRequestDTO} chứa các thông tin cần thiết để xác thực.
+     * @param request DTO {@link RegisterAndVerifyRequest} chứa các thông tin cần thiết để xác thực.
      */
     @Override
     @Transactional // Đảm bảo việc tạo User và vô hiệu hóa OTP là atomic
-    public UserCreationResultDTO verifyOtpAndRegisterLocalUser(RegisterAndVerifyRequestDTO request) {
+    public UserCreationResultDTO verifyOtpAndRegisterLocalUser(RegisterAndVerifyRequest request) {
         // 1. Xác thực mã OTP
-        VerifyOtpRequestDTO verifyRequest = new VerifyOtpRequestDTO(
+        VerifyOtpRequest verifyRequest = new VerifyOtpRequest(
                 request.email(),
                 request.otp(),
                 OtpPurpose.REGISTER
@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void resendOtp(ResendOtpRequestDTO request) {
+    public void resendOtp(ResendOtpRequest request) {
         if (request.purpose() == OtpPurpose.REGISTER) {
             if (userService.existsByEmail(request.target())) {
                 throw new IllegalStateException("Tài khoản với email " + request.target() + " đã được đăng ký và kích hoạt thành công. Vui lòng đăng nhập.");

@@ -1,8 +1,8 @@
 package com.cuonglm.ecommerce.backend.auth.controller;
 
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterUserRequest;
 import com.cuonglm.ecommerce.backend.auth.service.AuthService;
 import com.cuonglm.ecommerce.backend.core.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -34,7 +34,7 @@ public class AuthController {
 
     
     @PostMapping("/register/send-otp")
-    public ResponseEntity<ApiResponse<?>> sendOtpForRegister(@Valid @RequestBody UserRegisterRequestDTO request) {
+    public ResponseEntity<ApiResponse<?>> sendOtpForRegister(@Valid @RequestBody RegisterUserRequest request) {
         authService.requestRegistrationOtp(request);
 
         String message = "Mã OTP đã được gửi đến " + request.email() + ". Vui lòng kiểm tra email và nhập mã để hoàn tất đăng ký.";
@@ -42,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/verify")
-    public ResponseEntity<ApiResponse<?>> verifyAndRegister(@Valid @RequestBody RegisterAndVerifyRequestDTO request) {
+    public ResponseEntity<ApiResponse<?>> verifyAndRegister(@Valid @RequestBody RegisterAndVerifyRequest request) {
         authService.verifyOtpAndRegisterLocalUser(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse<?>> resendOtp(@Valid @RequestBody ResendOtpRequestDTO request) {
+    public ResponseEntity<ApiResponse<?>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.resendOtp(request);
 
         // Xử lý thông báo tùy thuộc vào mục đích

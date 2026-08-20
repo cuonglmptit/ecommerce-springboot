@@ -1,8 +1,8 @@
 package com.cuonglm.ecommerce.backend.auth.service;
 
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequestDTO;
-import com.cuonglm.ecommerce.backend.auth.dto.external.user.UserRegisterRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.ResendOtpRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterAndVerifyRequest;
+import com.cuonglm.ecommerce.backend.auth.dto.external.user.RegisterUserRequest;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.user.dto.internal.UserCreationResultDTO;
 
@@ -27,14 +27,14 @@ public interface AuthService {
      *
      * @param request DTO chứa username, email, password của người dùng.
      */
-    OtpToken requestRegistrationOtp(UserRegisterRequestDTO request);
+    OtpToken requestRegistrationOtp(RegisterUserRequest request);
 
     /**
      * Yêu cầu tạo OTP mới
      *
-     * @param request DTO {@link ResendOtpRequestDTO} chứa mục đích và target.
+     * @param request DTO {@link ResendOtpRequest} chứa mục đích và target.
      */
-    void resendOtp(ResendOtpRequestDTO request);
+    void resendOtp(ResendOtpRequest request);
 
     /**
      * Kiểm tra OTP và tạo người dùng local mới
@@ -42,8 +42,8 @@ public interface AuthService {
      * Nếu như OTP hợp lệ thì sẽ tạo tạo khoàn người dùng từ thông tin đăng ký.
      * </p>
      *
-     * @param request DTO {@link RegisterAndVerifyRequestDTO} chứa các thông tin cần thiết để xác thực.
+     * @param request DTO {@link RegisterAndVerifyRequest} chứa các thông tin cần thiết để xác thực.
      * @return Thông tin tài khoản được tạo thành công.
      */
-    UserCreationResultDTO verifyOtpAndRegisterLocalUser(RegisterAndVerifyRequestDTO request);
+    UserCreationResultDTO verifyOtpAndRegisterLocalUser(RegisterAndVerifyRequest request);
 }

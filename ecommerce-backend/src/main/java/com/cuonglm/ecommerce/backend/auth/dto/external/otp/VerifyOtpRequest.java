@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  * @param otp     Mã OTP người dùng nhập.
  * @param purpose Mục đích của OTP (ví dụ: REGISTER_VERIFICATION).
  */
-public record VerifyOtpRequestDTO(
+public record VerifyOtpRequest(
         // Các trường này đã được khai báo validation trong OtpRequest.
         // Ta có thể lặp lại @Valid ở Controller nếu muốn, nhưng về mặt ngữ nghĩa là ổn.
         @NotBlank(message = "Định danh (email/số điện thoại) không được để trống")
@@ -26,4 +26,5 @@ public record VerifyOtpRequestDTO(
 
         @NotNull(message = "Mục đích không được để trống")
         OtpPurpose purpose
-) implements OtpRequest {} // **TRIỂN KHAI INTERFACE**
+) implements OtpRequest {
+}

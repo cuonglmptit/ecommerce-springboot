@@ -15,6 +15,10 @@ import java.util.Optional;
  */
 public class SecurityUtils {
 
+    public static Optional<Authentication> getAuthentication() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication());
+    }
+
     public static Optional<String> getCurrentUserLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

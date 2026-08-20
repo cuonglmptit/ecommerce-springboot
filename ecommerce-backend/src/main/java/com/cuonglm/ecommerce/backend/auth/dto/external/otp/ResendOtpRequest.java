@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * ResendOtpRequestDTO – DTO cho việc yêu cầu tạo OTP mới.
+ * ResendOtpRequest – DTO cho việc yêu cầu tạo OTP mới.
  *
  * <p>
  * DTO cho request Gửi Lại OTP Không cần trường 'otp'.
@@ -14,7 +14,7 @@ import jakarta.validation.constraints.NotNull;
  * @author cuonglmptit
  * @since Thursday, 06 November 2025
  */
-public record ResendOtpRequestDTO(
+public record ResendOtpRequest(
         @NotBlank(message = "Định danh (target) không được để trống")
         String target,
 

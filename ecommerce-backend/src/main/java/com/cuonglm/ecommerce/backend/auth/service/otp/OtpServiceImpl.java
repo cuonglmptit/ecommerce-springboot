@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.auth.service.otp;
 
-import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequestDTO;
+import com.cuonglm.ecommerce.backend.auth.dto.external.otp.VerifyOtpRequest;
 import com.cuonglm.ecommerce.backend.auth.entity.OtpToken;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpChannel;
 import com.cuonglm.ecommerce.backend.auth.enums.OtpPurpose;
@@ -143,7 +143,7 @@ public class OtpServiceImpl implements OtpService {
     @Override
     // Sử dụng REQUIRES_NEW để coi như 1 lần validate sẽ trừ đi số lần thử dù đúng hay sai
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean validateOtp(VerifyOtpRequestDTO otpToken) {
+    public boolean validateOtp(VerifyOtpRequest otpToken) {
         Instant now = Instant.now();
         // 1. Tìm mã OTP hợp lệ nhất (mới nhất, chưa hết hạn, chưa dùng)
         Optional<OtpToken> existingOptionalToken = otpTokenRepository
