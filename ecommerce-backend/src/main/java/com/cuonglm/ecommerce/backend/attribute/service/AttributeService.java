@@ -5,7 +5,7 @@ import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeOptionRespo
 import com.cuonglm.ecommerce.backend.attribute.dto.external.AttributeResponse;
 import com.cuonglm.ecommerce.backend.attribute.dto.external.CreateAttributeRequest;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
-import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
+import com.cuonglm.ecommerce.backend.attribute.projection.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoDTO;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;

@@ -4,6 +4,7 @@ import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
+import com.cuonglm.ecommerce.backend.attribute.projection.AttributeInfoView;
 
 import java.util.UUID;
 

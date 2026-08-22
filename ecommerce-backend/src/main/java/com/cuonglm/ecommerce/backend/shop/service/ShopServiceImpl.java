@@ -6,7 +6,7 @@ import com.cuonglm.ecommerce.backend.core.exception.ResourceNotFoundException;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
 import com.cuonglm.ecommerce.backend.shop.dto.external.*;
 import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoDTO;
-import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoView;
+import com.cuonglm.ecommerce.backend.shop.projection.ShopInfoView;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopPermission;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;

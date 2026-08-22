@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.category.dto.internal;
+package com.cuonglm.ecommerce.backend.category.projection;
 
 /**
  * CategoryInfoView – Projection lấy ngành hàng.

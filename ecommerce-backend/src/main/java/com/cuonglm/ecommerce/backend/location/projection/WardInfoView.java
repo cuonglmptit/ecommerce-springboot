@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.location.dto.internal;
+package com.cuonglm.ecommerce.backend.location.projection;
 
 /**
  * WardInfoView – Projection lấy thông tin Phường/Xã kèm District ID cha.

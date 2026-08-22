@@ -4,6 +4,7 @@ import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
 import com.cuonglm.ecommerce.backend.category.dto.internal.*;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
+import com.cuonglm.ecommerce.backend.category.projection.CategoryInfoView;
 import com.cuonglm.ecommerce.backend.category.repository.CategoryAttributeRepository;
 import com.cuonglm.ecommerce.backend.category.repository.CategoryRepository;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;

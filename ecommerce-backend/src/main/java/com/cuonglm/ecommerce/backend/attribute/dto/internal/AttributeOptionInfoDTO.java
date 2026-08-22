@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.attribute.dto.internal;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
+import com.cuonglm.ecommerce.backend.attribute.projection.AttributeOptionInfoView;
 
 import java.util.UUID;
 

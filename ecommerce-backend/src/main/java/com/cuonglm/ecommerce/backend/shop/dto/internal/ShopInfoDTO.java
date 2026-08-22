@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.shop.dto.internal;
 
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
+import com.cuonglm.ecommerce.backend.shop.projection.ShopInfoView;
 
 /**
  * ShopInfoDTO – Dto cho internal service xem thông tin về shop.

@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.category.dto.internal;
 
+import com.cuonglm.ecommerce.backend.category.projection.CategoryInfoView;
+
 /**
  * CategoryInfoDTO – DTO thông tin category
  *

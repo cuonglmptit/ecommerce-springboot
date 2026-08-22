@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.media.dto.internal;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
+import com.cuonglm.ecommerce.backend.media.projection.MediaInfoView;
 
 import java.util.UUID;
 

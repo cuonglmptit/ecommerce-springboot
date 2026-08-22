@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.user.dto.internal;
+package com.cuonglm.ecommerce.backend.user.projection;
 
 import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
 import com.cuonglm.ecommerce.backend.user.enums.UserAddressType;

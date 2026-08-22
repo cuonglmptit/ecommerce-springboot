@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.location.dto.internal;
 
+import com.cuonglm.ecommerce.backend.location.projection.DistrictInfoView;
+
 /**
  * DistrictInfoDTO – DTO trao đổi thông tin Quận/Huyện nội bộ.
  *

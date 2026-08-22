@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.location.dto.internal;
 
+import com.cuonglm.ecommerce.backend.location.projection.WardInfoView;
+
 /**
  * WardInfoDTO – DTO trao đổi thông tin Phường/Xã nội bộ.
  *

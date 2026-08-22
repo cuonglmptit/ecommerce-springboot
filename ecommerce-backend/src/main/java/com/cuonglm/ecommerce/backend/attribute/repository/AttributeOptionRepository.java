@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.attribute.repository;
 
-import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeOptionInfoView;
+import com.cuonglm.ecommerce.backend.attribute.projection.AttributeOptionInfoView;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.entity.AttributeOption;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;

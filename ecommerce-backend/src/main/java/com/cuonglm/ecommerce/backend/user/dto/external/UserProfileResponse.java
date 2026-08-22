@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.user.dto.external;
 
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserProfileInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserProfileInfoView;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.enums.Gender;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;

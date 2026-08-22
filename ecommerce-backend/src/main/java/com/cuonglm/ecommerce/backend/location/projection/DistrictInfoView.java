@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.location.dto.internal;
+package com.cuonglm.ecommerce.backend.location.projection;
 
 /**
  * DistrictInfoView – Projection lấy thông tin Quận/Huyện kèm Province ID cha.

@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.user.dto.internal;
 
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
+import com.cuonglm.ecommerce.backend.user.projection.UserInfoView;
 
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.shop.dto.internal;
+package com.cuonglm.ecommerce.backend.shop.projection;
 
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 

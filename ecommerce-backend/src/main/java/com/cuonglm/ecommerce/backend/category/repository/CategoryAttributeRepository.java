@@ -3,7 +3,7 @@ package com.cuonglm.ecommerce.backend.category.repository;
 import com.cuonglm.ecommerce.backend.attribute.entity.Attribute;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeType;
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryAttributeInfoView;
+import com.cuonglm.ecommerce.backend.category.projection.CategoryAttributeInfoView;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
 import com.cuonglm.ecommerce.backend.category.entity.CategoryAttribute;
 import org.springframework.data.jpa.repository.JpaRepository;

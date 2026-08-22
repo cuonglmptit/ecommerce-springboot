@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.location.dto.internal;
+package com.cuonglm.ecommerce.backend.location.projection;
 
 /**
  * ProvinceInfoView – Projection lấy thông tin Tỉnh/Thành phố.

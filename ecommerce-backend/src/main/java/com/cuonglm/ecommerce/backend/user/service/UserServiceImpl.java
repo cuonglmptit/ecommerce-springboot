@@ -10,6 +10,8 @@ import com.cuonglm.ecommerce.backend.user.entity.User;
 import com.cuonglm.ecommerce.backend.user.entity.UserOAuth2Account;
 import com.cuonglm.ecommerce.backend.user.enums.UserRole;
 import com.cuonglm.ecommerce.backend.user.enums.UserStatus;
+import com.cuonglm.ecommerce.backend.user.projection.UserInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserProfileInfoView;
 import com.cuonglm.ecommerce.backend.user.repository.UserOAuth2AccountRepository;
 import com.cuonglm.ecommerce.backend.user.repository.UserRepository;
 import com.cuonglm.ecommerce.backend.user.service.oauth2.UserOAuth2Info;

@@ -2,6 +2,7 @@ package com.cuonglm.ecommerce.backend.category.dto.internal;
 
 import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoDTO;
 import com.cuonglm.ecommerce.backend.category.enums.FilterType;
+import com.cuonglm.ecommerce.backend.category.projection.CategoryAttributeInfoView;
 
 /**
  * CategoryAttributeInfoDTO – DTO cho {@link com.cuonglm.ecommerce.backend.category.entity.CategoryAttribute}

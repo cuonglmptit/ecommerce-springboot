@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.user.dto.external;
 
 import com.cuonglm.ecommerce.backend.location.entity.snapshot.AddressSnapshot;
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserAddressInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserAddressInfoView;
 import com.cuonglm.ecommerce.backend.user.entity.UserAddress;
 import com.cuonglm.ecommerce.backend.user.enums.UserAddressType;
 

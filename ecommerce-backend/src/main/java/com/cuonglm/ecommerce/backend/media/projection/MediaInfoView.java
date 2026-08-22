@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.media.dto.internal;
+package com.cuonglm.ecommerce.backend.media.projection;
 
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;

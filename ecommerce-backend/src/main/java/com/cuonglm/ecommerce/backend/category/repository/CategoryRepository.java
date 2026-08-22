@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.category.repository;
 
-import com.cuonglm.ecommerce.backend.category.dto.internal.CategoryInfoView;
+import com.cuonglm.ecommerce.backend.category.projection.CategoryInfoView;
 import com.cuonglm.ecommerce.backend.category.entity.Category;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

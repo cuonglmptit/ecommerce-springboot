@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.media.repository;
 
-import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoView;
+import com.cuonglm.ecommerce.backend.media.projection.MediaInfoView;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

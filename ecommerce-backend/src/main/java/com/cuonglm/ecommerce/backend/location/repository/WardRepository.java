@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.location.repository;
 
-import com.cuonglm.ecommerce.backend.location.dto.internal.WardInfoView;
+import com.cuonglm.ecommerce.backend.location.projection.WardInfoView;
 import com.cuonglm.ecommerce.backend.location.entity.Ward;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

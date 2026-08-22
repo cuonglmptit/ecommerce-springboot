@@ -1,5 +1,7 @@
 package com.cuonglm.ecommerce.backend.location.dto.internal;
 
+import com.cuonglm.ecommerce.backend.location.projection.ProvinceInfoView;
+
 /**
  * ProvinceInfoDTO – DTO trao đổi thông tin Tỉnh/Thành phố nội bộ.
  *

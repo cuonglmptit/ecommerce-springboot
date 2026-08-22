@@ -1,7 +1,7 @@
 package com.cuonglm.ecommerce.backend.user.repository;
 
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserInfoView;
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserProfileInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserProfileInfoView;
 import com.cuonglm.ecommerce.backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

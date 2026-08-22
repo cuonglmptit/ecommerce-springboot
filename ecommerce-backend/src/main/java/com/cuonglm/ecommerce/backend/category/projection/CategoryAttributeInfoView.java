@@ -1,6 +1,6 @@
-package com.cuonglm.ecommerce.backend.category.dto.internal;
+package com.cuonglm.ecommerce.backend.category.projection;
 
-import com.cuonglm.ecommerce.backend.attribute.dto.internal.AttributeInfoView;
+import com.cuonglm.ecommerce.backend.attribute.projection.AttributeInfoView;
 import com.cuonglm.ecommerce.backend.category.enums.FilterType;
 
 /**

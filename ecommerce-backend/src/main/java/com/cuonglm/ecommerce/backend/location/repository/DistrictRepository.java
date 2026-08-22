@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.location.repository;
 
-import com.cuonglm.ecommerce.backend.location.dto.internal.DistrictInfoView;
+import com.cuonglm.ecommerce.backend.location.projection.DistrictInfoView;
 import com.cuonglm.ecommerce.backend.location.entity.District;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

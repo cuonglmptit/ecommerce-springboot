@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.user.repository;
 
-import com.cuonglm.ecommerce.backend.user.dto.internal.UserAddressInfoView;
+import com.cuonglm.ecommerce.backend.user.projection.UserAddressInfoView;
 import com.cuonglm.ecommerce.backend.user.entity.UserAddress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

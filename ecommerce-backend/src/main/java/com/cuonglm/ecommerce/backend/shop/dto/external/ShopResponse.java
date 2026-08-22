@@ -1,6 +1,6 @@
 package com.cuonglm.ecommerce.backend.shop.dto.external;
 
-import com.cuonglm.ecommerce.backend.shop.dto.internal.ShopInfoView;
+import com.cuonglm.ecommerce.backend.shop.projection.ShopInfoView;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import com.cuonglm.ecommerce.backend.shop.enums.ShopStatus;
 

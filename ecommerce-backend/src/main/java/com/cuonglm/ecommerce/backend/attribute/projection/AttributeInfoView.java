@@ -1,4 +1,4 @@
-package com.cuonglm.ecommerce.backend.attribute.dto.internal;
+package com.cuonglm.ecommerce.backend.attribute.projection;
 
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeScope;
 import com.cuonglm.ecommerce.backend.attribute.enums.AttributeStatus;
