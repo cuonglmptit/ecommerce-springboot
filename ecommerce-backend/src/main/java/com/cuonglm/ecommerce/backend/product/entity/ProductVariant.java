@@ -1,5 +1,6 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapshot;
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.VariantAttributeSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
@@ -32,25 +33,33 @@ import java.util.List;
  * @since Tuesday, 22 July 2025
  */
 @Entity
-@Table(name = "product_variants")
+@Table(
+        name = "product_variants",
+        indexes = {
+                @Index(name = "idx_variant_product_id", columnList = "product_id"),
+                @Index(name = "idx_variant_sku", columnList = "sku"),
+                @Index(name = "idx_variant_price", columnList = "price"),
+                @Index(name = "idx_variant_status", columnList = "status")
+        }
+)
 public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false, length = 100)
     private String sku;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    @Min(value = 0, message = "Giá phải lớn hơn 0")
+    @Min(value = 0, message = "Giá gốc phải lớn hơn hoặc bằng 0")
     private BigDecimal price;
 
     @Column(precision = 19, scale = 2)
-    @Min(value = 0, message = "Giá khuyến mãi phải lớn hơn 0")
+    @Min(value = 0, message = "Giá khuyến mãi phải lớn hơn hoặc bằng 0")
     private BigDecimal salePrice;
 
     @Column(nullable = false)
@@ -64,8 +73,15 @@ public class ProductVariant {
     @Column(name = "media", columnDefinition = "jsonb")
     private List<ProductMediaSnapshot> media = new ArrayList<>();
 
-    @Column(nullable = false)
-    private ProductVariantStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ProductVariantStatus status = ProductVariantStatus.ACTIVE;
+
+    @Version
+    private Long version;
+
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     //<editor-fold desc="Getters/Setters">
 
@@ -141,5 +157,12 @@ public class ProductVariant {
         this.status = status;
     }
 
+    public Long getVersion() {
+        return version;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
     //</editor-fold>
 }

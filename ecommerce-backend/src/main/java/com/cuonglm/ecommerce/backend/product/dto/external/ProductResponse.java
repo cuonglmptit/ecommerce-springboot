@@ -6,6 +6,7 @@ import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapsho
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.SpecificationSnapshot;
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.VariantAttributeSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductVariantStatus;
+import com.cuonglm.ecommerce.backend.product.projection.ProductDetailInfoView;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -50,6 +51,20 @@ public record ProductResponse(
                     variant.getMedia() != null ? variant.getMedia() : List.of()
             );
         }
+
+        public static VariantItem fromView(ProductDetailInfoView.VariantDetailInfoView view) {
+            if (view == null) return null;
+            return new VariantItem(
+                    view.getId(),
+                    view.getSku(),
+                    view.getPrice(),
+                    view.getSalePrice(),
+                    view.getStockQuantity(),
+                    view.getStatus(),
+                    view.getAttributes() != null ? view.getAttributes() : List.of(),
+                    view.getMedia() != null ? view.getMedia() : List.of()
+            );
+        }
     }
 
     public static ProductResponse fromEntity(Product product) {
@@ -67,6 +82,24 @@ public record ProductResponse(
                 product.getStatus() != null ? product.getStatus().name() : null,
                 product.getSpecifications() != null ? product.getSpecifications() : List.of(),
                 product.getMedia() != null ? product.getMedia() : List.of(),
+                variantItems
+        );
+    }
+
+    public static ProductResponse fromView(ProductDetailInfoView view) {
+        if (view == null) return null;
+        List<VariantItem> variantItems = (view.getVariants() != null) ?
+                view.getVariants().stream().map(VariantItem::fromView).toList() : List.of();
+
+        return new ProductResponse(
+                view.getId(),
+                view.getShop() != null ? view.getShop().getId() : null,
+                view.getCategory() != null ? view.getCategory().getId() : null,
+                view.getName(),
+                view.getDescription(),
+                view.getStatus() != null ? view.getStatus().name() : null,
+                view.getSpecifications() != null ? view.getSpecifications() : List.of(),
+                view.getMedia() != null ? view.getMedia() : List.of(),
                 variantItems
         );
     }

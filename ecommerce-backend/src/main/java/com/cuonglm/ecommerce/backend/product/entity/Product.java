@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.product.entity;
 
 import com.cuonglm.ecommerce.backend.category.entity.Category;
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.ProductMediaSnapshot;
 import com.cuonglm.ecommerce.backend.product.entity.snapshot.SpecificationSnapshot;
 import com.cuonglm.ecommerce.backend.product.enums.ProductStatus;
@@ -8,13 +9,8 @@ import com.cuonglm.ecommerce.backend.shop.entity.Shop;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,33 +25,46 @@ import java.util.List;
  * @since Tuesday, 15 July 2025
  */
 @Entity
-@Table(name = "products")
+@Table(
+        name = "products",
+        indexes = {
+                @Index(name = "idx_product_shop_id", columnList = "shop_id"),
+                @Index(name = "idx_product_category_id", columnList = "category_id"),
+                @Index(name = "idx_product_status", columnList = "status"),
+                @Index(name = "idx_product_slug", columnList = "slug"),
+                @Index(name = "idx_product_name", columnList = "name")
+        }
+)
 @EntityListeners(AuditingEntityListener.class)
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     private Shop shop;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Column(nullable = false, length = 255)
     private String name;
 
+    @Column(nullable = false, length = 255)
+    private String slug;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "specifications", columnDefinition = "jsonb")
     private List<SpecificationSnapshot> specifications = new ArrayList<>();
 
-    @Column(nullable = false, length = 255)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(nullable = false)
-    private ProductStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ProductStatus status = ProductStatus.ACTIVE;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "media", columnDefinition = "jsonb")
@@ -64,30 +73,25 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
 
+    @Version
+    private Long version;
 
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
 
     //<editor-fold desc="Getter/Setters">
 
     public void addVariant(ProductVariant variant) {
         variants.add(variant);
         variant.setProduct(this);
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
+
+    public void setAudit(AuditMetadata audit) {
+        this.audit = (audit != null) ? audit : new AuditMetadata();
     }
 
     public Long getId() {
@@ -161,6 +165,17 @@ public class Product {
     public void setStatus(ProductStatus status) {
         this.status = status;
     }
-//</editor-fold>
 
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+//</editor-fold>
 }
