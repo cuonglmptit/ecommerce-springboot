@@ -22,9 +22,12 @@ import java.util.UUID;
 @Service
 public class CloudinaryServiceImpl implements StorageService {
     private final Cloudinary cloudinary;
+    private final CloudinaryConfig cloudinaryConfig;
 
-    public CloudinaryServiceImpl(Cloudinary cloudinary) {
+
+    public CloudinaryServiceImpl(Cloudinary cloudinary, CloudinaryConfig cloudinaryConfig) {
         this.cloudinary = cloudinary;
+        this.cloudinaryConfig = cloudinaryConfig;
     }
 
     @Override
@@ -68,13 +71,28 @@ public class CloudinaryServiceImpl implements StorageService {
     @Override
     public void delete(String externalId) {
         try {
-            // ObjectUtils.emptyMap() vì việc xóa không cần options phức tạp
-            Map destroyResult = cloudinary.uploader().destroy(externalId, ObjectUtils.emptyMap());
-            System.out.println("Kết quả thực hiện xóa variantMedia trên Cloudinary: " + externalId + ": "
-                    + (String) destroyResult.get("result"));
+            cloudinary.uploader().destroy(externalId, ObjectUtils.emptyMap());
         } catch (IOException e) {
-            System.err.println("Lỗi khi xóa variantMedia trên Cloudinary: " + externalId + ". Lỗi: " + e.getMessage());
+            System.err.println("Lỗi khi xóa media trên Cloudinary: " + externalId + ". Lỗi: " + e.getMessage());
         }
     }
 
+    @Override
+    public String generateSignature(Map<String, Object> params) {
+        return cloudinary.apiSignRequest(
+                params,
+                this.cloudinary.config.apiSecret,
+                this.cloudinary.config.signatureVersion
+        );
+    }
+
+    @Override
+    public String getApiKey() {
+        return cloudinaryConfig.getApiKey();
+    }
+
+    @Override
+    public String getDirectUploadUrl() {
+        return String.format("https://api.cloudinary.com/v1_1/%s/auto/upload", cloudinaryConfig.getCloudName());
+    }
 }

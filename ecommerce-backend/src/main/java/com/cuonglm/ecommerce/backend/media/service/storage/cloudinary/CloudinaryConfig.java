@@ -1,4 +1,4 @@
-    package com.cuonglm.ecommerce.backend.media.service.storage.cloudinary;
+package com.cuonglm.ecommerce.backend.media.service.storage.cloudinary;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -34,5 +34,17 @@ public class CloudinaryConfig {
                 "secure", true
         );
         return new Cloudinary(config);
+    }
+
+    public String getCloudName() {
+        return cloudName;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public String getApiSecret() {
+        return apiSecret;
     }
 }

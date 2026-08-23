@@ -1,18 +1,14 @@
 package com.cuonglm.ecommerce.backend.media.entity;
 
+import com.cuonglm.ecommerce.backend.core.entity.AuditMetadata;
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
+import com.cuonglm.ecommerce.backend.media.enums.MediaScope;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
-import com.cuonglm.ecommerce.backend.user.entity.User;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -26,23 +22,30 @@ import java.util.UUID;
  * @since Tuesday, 22 July 2025
  */
 @Entity
-@Table(name = "media",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "external_id"})
+@Table(
+        name = "media",
+        indexes = {
+                @Index(name = "idx_media_checksum", columnList = "checksum"),
+                @Index(name = "idx_media_created_by", columnList = "created_by_id"),
+                @Index(name = "idx_media_scope", columnList = "scope")
+        },
+        uniqueConstraints = @UniqueConstraint(name = "uk_media_provider_external", columnNames = {"provider", "external_id"})
 )
 @EntityListeners(AuditingEntityListener.class)
 public class Media {
-    /**
-     * UUID với GenerationType.UUID (JPA 3.1+)
-     */
-    @PrePersist
-    public void ensureId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID();
-        }
-    }
+    @Embedded
+    private AuditMetadata audit = new AuditMetadata();
+
     @Id
 //    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "checksum", length = 64, nullable = false)
+    private String checksum;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private MediaScope scope = MediaScope.PUBLIC;
 
     /**
      * Loại variantMedia (ảnh, video,...)
@@ -90,107 +93,110 @@ public class Media {
     @Column(nullable = false)
     private BasicStatus status = BasicStatus.ACTIVE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uploader_id", nullable = false)
-    private User uploader;
-
-    //<editor-fold desc="Audit metadata">
-    @CreatedBy
-    @JoinColumn(name = "created_by_id", updatable = false)
-    private Long createdById;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedBy
-    @JoinColumn(name = "modified_by_id")
-    private Long modifiedById;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant modifiedAt;
-    //</editor-fold>
+    /**
+     * UUID với GenerationType.UUID (JPA 3.1+)
+     */
+    @PrePersist
+    public void ensureIdAndChecksum() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
+        if (this.checksum == null) {
+            this.checksum = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
+        }
+    }
 
     //<editor-fold desc="Getters/Setters">
-    public User getUploader() {
-        return uploader;
+    public MediaScope getScope() {
+        return scope;
+    }
+
+    public void setScope(MediaScope scope) {
+        this.scope = scope;
     }
 
     public BasicStatus getStatus() {
         return status;
     }
 
-    public MediaFormat getFormat() {
-        return format;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getAlt() {
-        return alt;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public MediaProvider getProvider() {
-        return provider;
-    }
-
-    public MediaType getType() {
-        return type;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setUploader(User uploader) {
-        this.uploader = uploader;
-    }
-
     public void setStatus(BasicStatus status) {
         this.status = status;
+    }
+
+    public MediaFormat getFormat() {
+        return format;
     }
 
     public void setFormat(MediaFormat format) {
         this.format = format;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getAlt() {
+        return alt;
     }
 
     public void setAlt(String alt) {
         this.alt = alt;
     }
 
+    public String getExternalId() {
+        return externalId;
+    }
+
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     public void setUrl(String url) {
         this.url = url;
     }
 
+    public MediaProvider getProvider() {
+        return provider;
+    }
+
     public void setProvider(MediaProvider provider) {
         this.provider = provider;
+    }
+
+    public MediaType getType() {
+        return type;
     }
 
     public void setType(MediaType type) {
         this.type = type;
     }
 
+    public UUID getId() {
+        return id;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
-//</editor-fold>
+
+    public String getChecksum() {
+        return checksum;
+    }
+
+    public void setChecksum(String checksum) {
+        this.checksum = checksum;
+    }
+
+    public AuditMetadata getAudit() {
+        return audit;
+    }
+    //</editor-fold>
 }

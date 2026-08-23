@@ -19,6 +19,7 @@ import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
+import com.cuonglm.ecommerce.backend.media.enums.MediaScope;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
 import com.cuonglm.ecommerce.backend.media.repository.MediaRepository;
 import com.cuonglm.ecommerce.backend.shop.entity.Shop;
@@ -198,7 +199,7 @@ public class DataInitializer {
             // ----------------------------
             // 4. Khởi tạo Media mặc định
             // ----------------------------
-            initDefaultMedia(mediaRepository, adminUser); // 👈 GỌI PHƯƠNG THỨC KHỞI TẠO MEDIA
+            initDefaultMedia(mediaRepository); // 👈 GỌI PHƯƠNG THỨC KHỞI TẠO MEDIA
 
 
             // ----------------------------
@@ -283,92 +284,78 @@ public class DataInitializer {
         };
     }
 
-    /**
-     * Khởi tạo 3 Media mặc định nếu chưa tồn tại.
-     *
-     * @param mediaRepository Repository của Media.
-     * @param uploader        User thực hiện upload.
-     */
-    private void initDefaultMedia(MediaRepository mediaRepository, User uploader) {
+    private void initDefaultMedia(MediaRepository mediaRepository) {
         System.out.println("⏳ Initializing Default Media...");
 
         // Media 1: Ảnh sản phẩm demo (ID: 000...0001)
         if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001")).isEmpty()) {
             Media media1 = createMedia(
-                    "t-shirt-image-1",
                     "https://cloudinary.com/product/t-shirt.jpg",
-                    "ecommerce/products/user-1/t-shirt1-12345",
+                    "ecommerce/catalog/products/t-shirt1-12345",
                     "Ảnh áo thun đỏ",
                     "Áo Thun Đỏ Demo",
                     MediaType.IMAGE,
                     MediaProvider.CLOUDINARY,
-                    MediaFormat.JPG,
-                    uploader
+                    MediaFormat.JPG
             );
             media1.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
             mediaRepository.save(media1);
         }
 
-        // Media 2: Ảnh avatar demo (ID: 000...0002)
+        // Media 2: Ảnh sản phẩm demo (ID: 000...0002)
         if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000002")).isEmpty()) {
             Media media2 = createMedia(
-                    "t-shirt-image-2",
-                    "https://cloudinary.com/product/t-shirt.jpg",
-                    "ecommerce/products/user-1/t-shirt2-12345",
-                    "Ảnh áo thun đỏ",
-                    "Áo Thun Đỏ Demo",
+                    "https://cloudinary.com/product/t-shirt2.jpg",
+                    "ecommerce/catalog/products/t-shirt2-12345",
+                    "Ảnh áo thun xanh",
+                    "Áo Thun Xanh Demo",
                     MediaType.IMAGE,
                     MediaProvider.CLOUDINARY,
-                    MediaFormat.JPG,
-                    uploader
+                    MediaFormat.JPG
             );
             media2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
             mediaRepository.save(media2);
         }
 
-        // Media 2: Ảnh avatar demo (ID: 000...0002)
+        // Media 3: Ảnh sản phẩm demo (ID: 000...0003)
         if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000003")).isEmpty()) {
             Media media3 = createMedia(
-                    "t-shirt-image-3",
-                    "https://cloudinary.com/product/t-shirt.jpg",
-                    "ecommerce/products/user-1/t-shirt3-12345",
-                    "Ảnh áo thun đỏ",
-                    "Áo Thun Đỏ Demo",
+                    "https://cloudinary.com/product/t-shirt3.jpg",
+                    "ecommerce/catalog/products/t-shirt3-12345",
+                    "Ảnh áo thun đen",
+                    "Áo Thun Đen Demo",
                     MediaType.IMAGE,
                     MediaProvider.CLOUDINARY,
-                    MediaFormat.JPG,
-                    uploader
+                    MediaFormat.JPG
             );
             media3.setId(UUID.fromString("00000000-0000-0000-0000-000000000003"));
             mediaRepository.save(media3);
         }
 
-        // Ảnh cho user id3 để test
-        User cuong = new User(); cuong.setId(3L);
+        // Media 4: Ảnh demo 4 (ID: 000...0004)
         if (mediaRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000004")).isEmpty()) {
-            Media media3 = createMedia(
-                    "t-shirt-image-4",
+            Media media4 = createMedia(
                     "https://cloudinary.com/product/t-shirt4.jpg",
-                    "ecommerce/products/user-2/t-shirt3-12345",
-                    "Img3",
-                    "Img3",
+                    "ecommerce/catalog/products/t-shirt4-12345",
+                    "Ảnh demo 4",
+                    "Demo Media 4",
                     MediaType.IMAGE,
                     MediaProvider.CLOUDINARY,
-                    MediaFormat.JPG,
-                    cuong
+                    MediaFormat.JPG
             );
-            media3.setId(UUID.fromString("00000000-0000-0000-0000-000000000004"));
-            mediaRepository.save(media3);
+            media4.setId(UUID.fromString("00000000-0000-0000-0000-000000000004"));
+            mediaRepository.save(media4);
         }
 
         System.out.println("✅ Default Media initialized successfully.");
     }
 
 
+
     /**
      * Helper method để tạo Media.
      */
-    private Media createMedia(String idPlaceholder, String url, String externalId, String alt, String title, MediaType type, MediaProvider provider, MediaFormat format, User uploader) {
+    private Media createMedia(String url, String externalId, String alt, String title, MediaType type, MediaProvider provider, MediaFormat format) {
         Media media = new Media();
         media.setUrl(url);
         media.setExternalId(externalId);
@@ -377,11 +364,10 @@ public class DataInitializer {
         media.setType(type);
         media.setProvider(provider);
         media.setFormat(format);
-        media.setUploader(uploader);
         media.setStatus(BasicStatus.ACTIVE);
+        media.setScope(MediaScope.PUBLIC);
         return media;
     }
-
     /**
      * Khởi tạo dữ liệu mẫu cho Category và Attribute.
      */

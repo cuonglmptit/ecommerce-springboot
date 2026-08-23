@@ -1,6 +1,9 @@
 package com.cuonglm.ecommerce.backend.media.service;
 
+import com.cuonglm.ecommerce.backend.media.dto.external.ConfirmUploadRequest;
 import com.cuonglm.ecommerce.backend.media.dto.external.MediaResponse;
+import com.cuonglm.ecommerce.backend.media.dto.external.PrepareUploadRequest;
+import com.cuonglm.ecommerce.backend.media.dto.external.PrepareUploadResponse;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,10 +25,17 @@ import java.util.UUID;
  */
 public interface MediaService {
     /**
-     * Upload variantMedia file lên Cloud thông qua Backend an toàn.
-     *
-     * @param file File cần upload
-     * @return DTO chứa thông tin variantMedia đã tạo.
+     * Bắt tay trước khi Upload (Pre-upload check trùng lặp & sinh chữ ký ký số).
+     */
+    PrepareUploadResponse prepareDirectUpload(PrepareUploadRequest request);
+
+    /**
+     * Xác nhận sau khi upload trực tiếp lên Cloud thành công để đăng ký vào hệ thống.
+     */
+    MediaResponse confirmDirectUpload(ConfirmUploadRequest request);
+
+    /**
+     * Upload qua Backend (Dành cho fallback hoặc internal service).
      */
     MediaResponse uploadProductMedia(MultipartFile file);
 

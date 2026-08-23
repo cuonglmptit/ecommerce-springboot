@@ -21,4 +21,8 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Optional<MediaInfoView> findMediaInfoById(UUID id);
 
     List<MediaInfoView> findMediaInfoByIdIn(Collection<UUID> ids);
+
+    Optional<Media> findByChecksum(String checksum);
+
+    Optional<MediaInfoView> findMediaInfoByChecksum(String checksum);
 }

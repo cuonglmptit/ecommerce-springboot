@@ -4,6 +4,8 @@ import com.cuonglm.ecommerce.backend.media.dto.external.CloudResourceDTO;
 import com.cuonglm.ecommerce.backend.media.enums.MediaProvider;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 /**
  * StorageService – Interface mô tả các phương thức thao tác với dịch vụ lưu trữ thứ 3 như Cloudinary.
  *
@@ -30,4 +32,19 @@ public interface StorageService {
      * @return
      */
     MediaProvider getProvider();
+
+    /**
+     * Tạo chữ ký xác thực bảo mật cho Client upload trực tiếp (Direct Signed Upload).
+     */
+    String generateSignature(Map<String, Object> paramsToSign);
+
+    /**
+     * Lấy API Key công khai của dịch vụ lưu trữ.
+     */
+    String getApiKey();
+
+    /**
+     * Lấy URL tiếp nhận upload trực tiếp từ Client.
+     */
+    String getDirectUploadUrl();
 }
