@@ -1,25 +1,25 @@
 package com.cuonglm.ecommerce.backend.media.service;
 
 import com.cuonglm.ecommerce.backend.core.exception.ValidationErrorsException;
-import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
 import com.cuonglm.ecommerce.backend.core.utils.SecurityUtils;
-import com.cuonglm.ecommerce.backend.media.dto.external.CloudResourceDTO;
-import com.cuonglm.ecommerce.backend.media.dto.external.ConfirmUploadRequest;
-import com.cuonglm.ecommerce.backend.media.dto.external.MediaResponse;
-import com.cuonglm.ecommerce.backend.media.dto.external.PrepareUploadRequest;
-import com.cuonglm.ecommerce.backend.media.dto.external.PrepareUploadResponse;
+import com.cuonglm.ecommerce.backend.media.dto.external.*;
 import com.cuonglm.ecommerce.backend.media.dto.internal.MediaInfoDTO;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import com.cuonglm.ecommerce.backend.media.enums.MediaScope;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
+import com.cuonglm.ecommerce.backend.media.projection.MediaInfoView;
 import com.cuonglm.ecommerce.backend.media.repository.MediaRepository;
 import com.cuonglm.ecommerce.backend.media.service.storage.StorageService;
+import com.cuonglm.ecommerce.backend.media.service.storage.cloudinary.CloudinaryConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -36,13 +36,18 @@ public class MediaServiceImpl implements MediaService {
     private static final String PUBLIC_FOLDER = "ecommerce/public";
     private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024;  // 10MB cho Ảnh
     private static final long MAX_VIDEO_SIZE = 50L * 1024 * 1024;  // 50MB cho Video
+    private static final long TOKEN_VALIDITY_SECONDS = 900L;
 
     private final StorageService storageService;
     private final MediaRepository mediaRepository;
+    private final CloudinaryConfig cloudinaryConfig;
 
-    public MediaServiceImpl(StorageService storageService, MediaRepository mediaRepository) {
+    public MediaServiceImpl(StorageService storageService,
+                            MediaRepository mediaRepository,
+                            CloudinaryConfig cloudinaryConfig) {
         this.storageService = storageService;
         this.mediaRepository = mediaRepository;
+        this.cloudinaryConfig = cloudinaryConfig;
     }
 
     @Override
@@ -50,11 +55,11 @@ public class MediaServiceImpl implements MediaService {
         validateFileMetadata(request.contentType(), request.fileSize());
         MediaScope scope = request.getResolvedScope();
 
-        // 1. Nếu là PUBLIC: Kiểm tra trùng Checksum (Instant Upload 0s)
+        // 1. Kiểm tra trùng lặp Checksum bằng Projection (Rule #1)
         if (scope == MediaScope.PUBLIC) {
-            Optional<Media> existing = mediaRepository.findByChecksum(request.checksum());
+            Optional<MediaInfoView> existing = mediaRepository.findMediaInfoByChecksum(request.checksum());
             if (existing.isPresent()) {
-                Media media = existing.get();
+                MediaInfoView media = existing.get();
                 return PrepareUploadResponse.existing(media.getId(), media.getUrl());
             }
         }
@@ -70,7 +75,11 @@ public class MediaServiceImpl implements MediaService {
         paramsToSign.put("public_id", publicId);
         paramsToSign.put("timestamp", timestamp);
 
+        // Ký chữ ký gửi sang Cloudinary
         String signature = storageService.generateSignature(paramsToSign);
+
+        // Sinh Vé ủy quyền nội bộ (HMAC-SHA256) bảo vệ Backend
+        String uploadToken = generateInternalUploadToken(request.checksum(), currentUserId, timestamp, scope);
 
         return PrepareUploadResponse.directUpload(
                 storageService.getDirectUploadUrl(),
@@ -78,37 +87,86 @@ public class MediaServiceImpl implements MediaService {
                 timestamp,
                 signature,
                 folder,
-                publicId
+                publicId,
+                uploadToken
         );
     }
 
     @Override
     public MediaResponse confirmDirectUpload(ConfirmUploadRequest request) {
+        Long currentUserId = SecurityUtils.getRequiredCurrentUserId();
         MediaScope scope = request.getResolvedScope();
+        Map<String, Object> errors = new LinkedHashMap<>();
 
-        // Chống race condition cho file PUBLIC
+        // 1. BẮT BUỘC XÁC THỰC VỀ UỶ QUYỀN (HMAC-SHA256): Chống hacker gọi trực tiếp không qua prepare
+        boolean isTokenValid = verifyInternalUploadToken(
+                request.uploadToken(),
+                request.checksum(),
+                currentUserId,
+                request.timestamp(),
+                scope
+        );
+        if (!isTokenValid) {
+            errors.put("uploadToken", "Phiên tải lên không hợp lệ, bị can thiệp hoặc đã quá hạn.");
+        }
+
+        // 2. BẮT BUỘC XÁC THỰC CHỮ KÝ PHẢN HỒI TỪ CLOUDINARY: Chứng minh Cloudinary đã thực sự nhận file
+        boolean isSignatureValid = storageService.verifyCloudinaryResponse(
+                request.externalId(),
+                request.version(),
+                request.signature()
+        );
+        if (!isSignatureValid) {
+            errors.put("signature", "Chữ ký phản hồi từ CDN không hợp lệ. Yêu cầu bị từ chối do nghi vấn can thiệp dữ liệu.");
+        }
+
+        // 3. BẮT BUỘC KIỂM TRA ĐỊNH DẠNG PHÂN VÙNG EXTERNAL ID
+        String expectedPrefix = (scope == MediaScope.PUBLIC) ? PUBLIC_FOLDER : "ecommerce/private/user-" + currentUserId;
+        if (!request.externalId().startsWith(expectedPrefix)) {
+            errors.put("externalId", "Định danh tài nguyên không đúng phân vùng lưu trữ hợp lệ.");
+        }
+
+        // 4. BẮT BUỘC RÀNG BUỘC CHECKSUM VÀ EXTERNAL ID TRONG PUBLIC SCOPE
+        if (scope == MediaScope.PUBLIC && !request.externalId().equals(PUBLIC_FOLDER + "/" + request.checksum())) {
+            errors.put("externalId", "External ID không khớp với mã Checksum SHA-256 của file.");
+        }
+
+        // 5. KIỂM TRA FORMAT MAGIC BYTES
+        Optional<MediaFormat> formatOpt = MediaFormat.fromExtension(request.format());
+        if (formatOpt.isEmpty()) {
+            errors.put("format", "Định dạng file từ máy chủ CDN không được hỗ trợ: " + request.format());
+        }
+
+        // 6. KIỂM TRA DUNG LƯỢNG THỰC TẾ
+        if (request.size() > MAX_IMAGE_SIZE && formatOpt.isPresent() && formatOpt.get().isImage()) {
+            errors.put("size", "Dung lượng ảnh thực tế vượt quá giới hạn 10MB.");
+        }
+
+        // NẾU CÓ BẤT KỲ LỖI NÀO -> CHIỀU THEO ZERO-TRUST, TỪ CHỐI TOÀN BỘ
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorsException("Xác thực tải lên thất bại do vi phạm an toàn dữ liệu.", errors);
+        }
+
+        // 7. Chống race-condition
         if (scope == MediaScope.PUBLIC) {
-            Optional<Media> existing = mediaRepository.findByChecksum(request.checksum());
+            Optional<MediaInfoView> existing = mediaRepository.findMediaInfoByChecksum(request.checksum());
             if (existing.isPresent()) {
-                return MediaResponse.fromEntity(existing.get());
+                return MediaResponse.fromView(existing.get());
             }
         }
 
-        Media media = new Media();
-        media.setChecksum(request.checksum());
-        media.setScope(scope);
-        media.setUrl(request.url());
-        media.setExternalId(request.externalId());
-        media.setTitle(request.originalFilename() != null ? request.originalFilename() : "media-asset");
-        media.setAlt(request.alt());
+        // 8. Lưu Database qua Factory Method
+        Media media = Media.of(
+                request.checksum(),
+                scope,
+                request.url(),
+                request.externalId(),
+                request.originalFilename(),
+                request.alt(),
+                formatOpt.get(),
+                storageService.getProvider()
+        );
 
-        MediaFormat mediaFormat = mapStringToMediaFormat(request.format());
-        media.setFormat(mediaFormat);
-        media.setType(mediaFormat.getMediaType());
-        media.setProvider(storageService.getProvider());
-        media.setStatus(BasicStatus.ACTIVE);
-
-        // AuditMetadata tự động nhận createdById qua Spring Auditing
         Media saved = mediaRepository.save(media);
         return MediaResponse.fromEntity(saved);
     }
@@ -124,19 +182,18 @@ public class MediaServiceImpl implements MediaService {
         }
 
         CloudResourceDTO resource = storageService.upload(file, PUBLIC_FOLDER);
+        MediaFormat mediaFormat = MediaFormat.fromExtension(resource.format()).orElse(MediaFormat.JPG);
 
-        Media media = new Media();
-        media.setChecksum(checksum);
-        media.setScope(MediaScope.PUBLIC);
-        media.setUrl(resource.url());
-        media.setExternalId(resource.externalId());
-        media.setTitle(file.getOriginalFilename() != null ? file.getOriginalFilename() : "media-asset");
-
-        MediaFormat mediaFormat = mapStringToMediaFormat(resource.format());
-        media.setFormat(mediaFormat);
-        media.setType(mediaFormat.getMediaType());
-        media.setProvider(storageService.getProvider());
-        media.setStatus(BasicStatus.ACTIVE);
+        Media media = Media.of(
+                checksum,
+                MediaScope.PUBLIC,
+                resource.url(),
+                resource.externalId(),
+                file.getOriginalFilename(),
+                null,
+                mediaFormat,
+                storageService.getProvider()
+        );
 
         Media savedMedia = mediaRepository.save(media);
         return MediaResponse.fromEntity(savedMedia);
@@ -163,6 +220,38 @@ public class MediaServiceImpl implements MediaService {
     }
 
     // --- Helpers ---
+
+    private String generateInternalUploadToken(String checksum, Long userId, Long timestamp, MediaScope scope) {
+        String rawData = String.format("%s:%d:%d:%s", checksum, userId, timestamp, scope.name());
+        try {
+            Mac hmac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(
+                    cloudinaryConfig.getApiSecret().getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+            hmac.init(secretKey);
+            byte[] hash = hmac.doFinal(rawData.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khởi tạo mã bảo mật nội bộ", e);
+        }
+    }
+
+    private boolean verifyInternalUploadToken(String token, String checksum, Long userId, Long timestamp, MediaScope scope) {
+        if (token == null || timestamp == null) return false;
+
+        long currentTimestamp = System.currentTimeMillis() / 1000L;
+        if (currentTimestamp - timestamp > TOKEN_VALIDITY_SECONDS || timestamp > currentTimestamp + 60) {
+            return false;
+        }
+
+        String expectedToken = generateInternalUploadToken(checksum, userId, timestamp, scope);
+        return MessageDigest.isEqual(
+                expectedToken.getBytes(StandardCharsets.UTF_8),
+                token.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
     private void validateFileMetadata(String contentType, Long fileSize) {
         Map<String, Object> errors = new HashMap<>();
         if (fileSize == null || fileSize <= 0) {

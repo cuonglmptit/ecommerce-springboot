@@ -47,4 +47,6 @@ public interface StorageService {
      * Lấy URL tiếp nhận upload trực tiếp từ Client.
      */
     String getDirectUploadUrl();
+
+    boolean verifyCloudinaryResponse(String publicId, Long version, String signature);
 }

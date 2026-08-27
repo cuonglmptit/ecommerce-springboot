@@ -106,6 +106,30 @@ public class Media {
         }
     }
 
+    public static Media of(
+            String checksum,
+            MediaScope scope,
+            String url,
+            String externalId,
+            String title,
+            String alt,
+            MediaFormat format,
+            MediaProvider provider
+    ) {
+        Media media = new Media();
+        media.setChecksum(checksum);
+        media.setScope(scope != null ? scope : MediaScope.PUBLIC);
+        media.setUrl(url);
+        media.setExternalId(externalId);
+        media.setTitle(title != null && !title.isBlank() ? title.trim() : "media-asset");
+        media.setAlt(alt != null && !alt.isBlank() ? alt.trim() : null);
+        media.setFormat(format);
+        media.setType(format != null ? format.getMediaType() : MediaType.IMAGE);
+        media.setProvider(provider != null ? provider : MediaProvider.CLOUDINARY);
+        media.setStatus(BasicStatus.ACTIVE);
+        return media;
+    }
+
     //<editor-fold desc="Getters/Setters">
     public MediaScope getScope() {
         return scope;

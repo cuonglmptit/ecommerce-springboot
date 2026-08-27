@@ -225,8 +225,8 @@ public class DataInitializer {
                                 .requireAuthorizationConsent(true)
                                 .build())
                         .tokenSettings(TokenSettings.builder()
-                                .accessTokenTimeToLive(Duration.ofMinutes(100))
-                                .refreshTokenTimeToLive(Duration.ofHours(200))
+                                .accessTokenTimeToLive(Duration.ofMinutes(1440))
+                                .refreshTokenTimeToLive(Duration.ofHours(168))
                                 .build())
                         .build();
                 registeredClientRepository.save(client1);

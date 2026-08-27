@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,14 +39,12 @@ public class CloudinaryServiceImpl implements StorageService {
     @Override
     public CloudResourceDTO upload(MultipartFile file, String folder) {
         try {
-            // Tạo tên file chuẩn hóa (Public ID)
-            // Nếu file.getOriginalFilename() null thì dùng UUID thuần
             String fileName = file.getOriginalFilename();
             String publicId = (fileName != null && !fileName.isEmpty())
                     ? FileUtils.generateUniquePublicId(fileName)
                     : UUID.randomUUID().toString();
 
-            Map options = ObjectUtils.asMap(
+            Map<?, ?> options = ObjectUtils.asMap(
                     "folder", folder,
                     "public_id", publicId,
                     // Tự động tối ưu hóa chất lượng ảnh và chuyển đổi định dạng
@@ -55,8 +54,7 @@ public class CloudinaryServiceImpl implements StorageService {
                     "resource_type", "auto"
             );
 
-            // Thực hiện upload và nhận kết quả
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
 
             return new CloudResourceDTO(
                     (String) uploadResult.get("secure_url"),
@@ -84,6 +82,26 @@ public class CloudinaryServiceImpl implements StorageService {
                 this.cloudinary.config.apiSecret,
                 this.cloudinary.config.signatureVersion
         );
+    }
+
+    @Override
+    public boolean verifyCloudinaryResponse(String publicId, Long version, String signature) {
+        if (publicId == null || version == null || signature == null) {
+            return false;
+        }
+
+        // Cloudinary response signature formula: SHA1("public_id=...&version=..." + api_secret)
+        Map<String, Object> paramsToVerify = new HashMap<>();
+        paramsToVerify.put("public_id", publicId);
+        paramsToVerify.put("version", version);
+
+        String expectedSignature = cloudinary.apiSignRequest(
+                paramsToVerify,
+                cloudinaryConfig.getApiSecret(),
+                this.cloudinary.config.signatureVersion
+        );
+
+        return expectedSignature.equalsIgnoreCase(signature);
     }
 
     @Override

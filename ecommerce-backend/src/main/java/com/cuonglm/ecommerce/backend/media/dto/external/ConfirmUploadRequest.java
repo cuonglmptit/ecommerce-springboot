@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Size;
  * @since Sunday, 23 August 2026
  */
 public record ConfirmUploadRequest(
-        @NotBlank(message = "Checksum SHA-256 không được để trống")
+        @NotBlank(message = "Checksum không được để trống")
         @Size(min = 64, max = 64)
         String checksum,
 
@@ -27,6 +27,19 @@ public record ConfirmUploadRequest(
 
         @NotNull(message = "Kích thước không được để trống")
         Long size,
+
+        @NotNull(message = "Version phản hồi từ CDN không được trống")
+        Long version,
+
+        @NotBlank(message = "Chữ ký signature từ CDN không được trống")
+        String signature,
+
+        // BAT BUOC 100%: Phai co Ve uy quyen do Backend cap o buoc prepare
+        @NotBlank(message = "Vé ủy quyền uploadToken không được trống")
+        String uploadToken,
+
+        @NotNull(message = "Dấu thời gian timestamp không được trống")
+        Long timestamp,
 
         String originalFilename,
         String alt,

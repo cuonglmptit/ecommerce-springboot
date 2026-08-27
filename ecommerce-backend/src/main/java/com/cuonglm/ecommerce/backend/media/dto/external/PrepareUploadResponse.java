@@ -21,14 +21,15 @@ public record PrepareUploadResponse(
         String signature,
         String folder,
         String publicId,
+        String uploadToken,
         Map<String, Object> extraParams
 ) {
     public static PrepareUploadResponse existing(UUID mediaId, String url) {
-        return new PrepareUploadResponse(true, mediaId, url, null, null, null, null, null, null, null);
+        return new PrepareUploadResponse(true, mediaId, url, null, null, null, null, null, null, null, null);
     }
 
     public static PrepareUploadResponse directUpload(String uploadUrl, String apiKey, Long timestamp,
-                                                     String signature, String folder, String publicId) {
-        return new PrepareUploadResponse(false, null, null, uploadUrl, apiKey, timestamp, signature, folder, publicId, null);
+                                                     String signature, String folder, String publicId, String uploadToken) {
+        return new PrepareUploadResponse(false, null, null, uploadUrl, apiKey, timestamp, signature, folder, publicId, uploadToken, null);
     }
 }

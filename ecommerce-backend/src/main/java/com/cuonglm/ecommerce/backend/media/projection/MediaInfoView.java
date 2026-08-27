@@ -1,6 +1,7 @@
 package com.cuonglm.ecommerce.backend.media.projection;
 
 import com.cuonglm.ecommerce.backend.core.status.BasicStatus;
+import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import com.cuonglm.ecommerce.backend.media.enums.MediaScope;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
 
@@ -15,6 +16,10 @@ import java.util.UUID;
 public interface MediaInfoView {
     UUID getId();
     String getUrl();
+    String getTitle();
+    String getExternalId();
+    String getAlt();
+    MediaFormat getFormat();
     MediaType getType();
     MediaScope getScope();
     BasicStatus getStatus();

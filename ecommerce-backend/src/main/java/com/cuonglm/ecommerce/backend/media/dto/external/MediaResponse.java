@@ -3,6 +3,7 @@ package com.cuonglm.ecommerce.backend.media.dto.external;
 import com.cuonglm.ecommerce.backend.media.entity.Media;
 import com.cuonglm.ecommerce.backend.media.enums.MediaFormat;
 import com.cuonglm.ecommerce.backend.media.enums.MediaType;
+import com.cuonglm.ecommerce.backend.media.projection.MediaInfoView;
 
 import java.util.UUID;
 
@@ -31,6 +32,19 @@ public record MediaResponse(
                 media.getExternalId(),
                 media.getType(),
                 media.getFormat()
+        );
+    }
+
+    public static MediaResponse fromView(MediaInfoView view) {
+        if (view == null) return null;
+        return new MediaResponse(
+                view.getId(),
+                view.getUrl(),
+                view.getAlt(),
+                view.getTitle(),
+                view.getExternalId(),
+                view.getType(),
+                view.getFormat()
         );
     }
 }
