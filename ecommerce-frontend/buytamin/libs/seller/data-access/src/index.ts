@@ -10,3 +10,5 @@ export * from './lib/attributes/attribute-api';
 export * from './lib/attributes/attribute.models';
 export * from './lib/categories/category.models';
 export * from './lib/categories/category-api';
+export * from '././lib/shop/shop.models';
+export * from './lib/shop/shop-api';

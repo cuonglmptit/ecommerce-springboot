@@ -168,9 +168,23 @@
                     {{ variantCtrl.controls.optionNames.value[0] || '-' }}
                   </td>
                   <td [attr.rowspan]="variation2OptionsLength()" style="text-align: center;">
-                    <div class="upload-thumbnail-box">
-                      <span class="icon-upload">📷</span>
-                    </div>
+                    <label class="upload-thumbnail-box" style="cursor: pointer; display: inline-block;">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        style="display: none;"
+                        (change)="uploadVariantImage(i, $event)"
+                      />
+                      @if (variantCtrl.controls.media.value[0]?.url) {
+                        <img
+                          [src]="variantCtrl.controls.media.value[0].url"
+                          alt="Variant Thumbnail"
+                          style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"
+                        />
+                      } @else {
+                        <span class="icon-upload" title="Tải ảnh cho phân loại này">📷</span>
+                      }
+                    </label>
                   </td>
                 }
 

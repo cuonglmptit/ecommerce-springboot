@@ -1,12 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  ControlContainer,
   FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
-  FormGroupDirective,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -18,6 +16,7 @@ import {
   AttributeOptionInfo,
   CategoryApi,
   CategoryAttributeInfo,
+  ProductMedia,
   VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
@@ -28,9 +27,11 @@ import {
   Subject,
   switchMap,
 } from 'rxjs';
+import { MediaApi } from '@buytamin/shared/data-access';
 
 @Component({
   selector: 'seller-sales-info',
+  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './sales-info.html',
   styleUrl: './sales-info.scss',
@@ -40,6 +41,7 @@ export class SalesInfo implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly attributeApi = inject(AttributeApi);
   private readonly categoryApi = inject(CategoryApi);
+  private readonly mediaApi = inject(MediaApi);
 
   private static readonly maxVariantsAllowed = 50;
   private static readonly maxAttributesAllowed = 2;
@@ -118,7 +120,7 @@ export class SalesInfo implements OnInit {
       this.formDataService.buildMatrixFromDefinitions();
     });
 
-    // RxJS Stream Search Attribute
+    // RxJS Stream Search Attribute (ĐÃ SỬA: Đọc trực tiếp từ Signal currentShopId)
     this.attrSearch$
       .pipe(
         debounceTime(300),
@@ -126,7 +128,7 @@ export class SalesInfo implements OnInit {
           (a, b) => a.index === b.index && a.query === b.query,
         ),
         switchMap(({ index, query }) => {
-          const shopId = this.formDataService.getSubmitPayload().shopId || 1;
+          const shopId = this.formDataService.currentShopId() || 1;
           return this.attributeApi
             .searchAttributes(shopId, query)
             .pipe(switchMap((data) => of({ index, data })));
@@ -138,7 +140,6 @@ export class SalesInfo implements OnInit {
         this.attributeSuggestions.set(current);
       });
 
-    // RxJS Stream Search Option
     this.optSearch$
       .pipe(
         debounceTime(300),
@@ -148,7 +149,7 @@ export class SalesInfo implements OnInit {
           if (!attrName.trim())
             return of({ key: `${attrIndex}-${optIndex}`, data: [] });
 
-          const shopId = this.formDataService.getSubmitPayload().shopId || 1;
+          const shopId = this.formDataService.currentShopId() || 1;
           return this.attributeApi
             .searchOptions(shopId, attrName, query)
             .pipe(
@@ -176,21 +177,19 @@ export class SalesInfo implements OnInit {
       next: (res) => {
         if (res.data) {
           this.categoryVariations.set(res.data);
-          console.log(res);
-          console.log(this.categoryVariations());
         }
       },
     });
   }
 
   addQuickVariation(attr: AttributeInfo) {
-    this.addAttributeDefinition(); // Tạo nhóm thuộc tính mới
+    this.addAttributeDefinition();
     const lastIndex = this.attributeDefsArray.length - 1;
     const group = this.attributeDefsArray.at(lastIndex);
 
     if (group) {
       group.controls.id.setValue(attr.id);
-      group.controls.name.setValue(attr.name); // Tự điền tên "Màu sắc"
+      group.controls.name.setValue(attr.name);
     }
   }
 
@@ -257,6 +256,7 @@ export class SalesInfo implements OnInit {
       stockQuantity: [0, [Validators.required, Validators.min(0)]],
       attributes: this.fb.control<VariantAttributeInput[]>([]),
       optionNames: this.fb.control<string[]>([]),
+      media: this.fb.control<ProductMedia[]>([]),
     });
 
     this.variantsArray.push(singleVariant);
@@ -457,6 +457,41 @@ export class SalesInfo implements OnInit {
       if (trimmedSku !== '') {
         variantCtrl.controls.sku.setValue(trimmedSku);
       }
+    });
+  }
+
+  // ĐÃ SỬA: Tự động đồng bộ ảnh cho tất cả biến thể có cùng Phân loại nhóm 1 (ví dụ Màu Đỏ)
+  uploadVariantImage(rowIndex: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const targetVariant = this.variantsArray.at(rowIndex);
+    const targetTier1OptionName =
+      targetVariant?.controls.optionNames.value?.[0];
+
+    this.mediaApi.uploadMediaDirect(file, 'PUBLIC').subscribe({
+      next: (res) => {
+        const variantMedia: ProductMedia = {
+          mediaId: res.id,
+          url: res.url,
+          alt: res.alt || file.name,
+          isThumbnail: false,
+          sortOrder: 0,
+        };
+
+        // Gán ảnh cho tất cả biến thể có cùng tên phân loại Tier 1 (vd: tất cả size của Màu Đỏ)
+        this.variantsArray.controls.forEach((variantCtrl) => {
+          if (
+            !targetTier1OptionName ||
+            variantCtrl.controls.optionNames.value?.[0] ===
+              targetTier1OptionName
+          ) {
+            variantCtrl.controls.media.setValue([variantMedia]);
+          }
+        });
+      },
+      error: (err) => alert('Lỗi tải ảnh biến thể: ' + err.message),
     });
   }
 

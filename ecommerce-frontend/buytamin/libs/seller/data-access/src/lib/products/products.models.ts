@@ -1,15 +1,14 @@
 import { BaseProduct } from '@buytamin/shared/models';
 
-/**
- * Interface for the 'Products' data
- */
 export interface ProductsEntity {
-  id: string | number; // Primary ID
+  id: string | number;
   name: string;
 }
 
 export interface ProductMedia {
   mediaId: string;
+  url: string;
+  alt?: string | null;
   isThumbnail: boolean;
   sortOrder: number;
 }
@@ -27,13 +26,25 @@ export interface Variant {
   salePrice: number;
   stockQuantity: number;
   attributes: VariantAttributeInput[];
-  variantMedia?: ProductMedia[];
+  media?: ProductMedia[];
 }
 
-// Kế thừa BaseProduct để lấy lại name, description, categoryId
-// Đồng thời bổ sung thêm các trường đặc thù mà chỉ Seller mới có
-export interface CreateProductRequest extends Omit<BaseProduct, 'id'> {
+export interface ProductSpecificationInput {
+  attributeId: string;
+  attributeName: string;
+  attributeCode?: string | null;
+  optionId?: string | null;
+  optionValue?: string | null;
+  rawValue?: string | null;
+}
+
+// Chỉ kế thừa name, description, categoryId từ BaseProduct, loại bỏ id, imageUrl, publicPrice
+// Hoặc dùng Pick để chỉ chọn đúng các trường cần thiết (extends Pick<BaseProduct, 'name' | 'description'>)
+export interface CreateProductRequest
+  extends Omit<BaseProduct, 'id' | 'imageUrl' | 'publicPrice' | 'categoryId'> {
   shopId: number;
-  productMedia: ProductMedia[];
+  categoryId: null | number;
+  specifications?: ProductSpecificationInput[];
+  media: ProductMedia[];
   variants: Variant[];
 }

@@ -1,12 +1,11 @@
-import { inject, Injectable } from '@angular/core';
-import {
-  FormArray,
-  FormBuilder,
-  Validators,
-} from '@angular/forms';
+import { inject, Injectable, signal } from '@angular/core';
+import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import {
   AttributeDefinitionFormGroup,
   CreateProductRequest,
+  ProductMedia,
+  ProductSpecificationInput,
+  ShopApi,
   VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
@@ -14,13 +13,25 @@ import {
 @Injectable()
 export class ProductFormData {
   private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly shopApi = inject(ShopApi);
+
+  readonly currentShopId = signal<number | null>(null);
+  readonly productMediaList = signal<ProductMedia[]>([]);
+  readonly specificationsList = signal<ProductSpecificationInput[]>([]);
 
   readonly form = this.fb.group({
     basicInfo: this.fb.group({
-      name: ['', Validators.required],
-      categoryId: [1, Validators.required],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(5),
+          Validators.maxLength(255),
+        ],
+      ],
+      categoryId: this.fb.control<number | null>(null, [Validators.required]),
     }),
-    description: ['', Validators.required],
+    description: ['', [Validators.required, Validators.minLength(10)]],
     hasVariants: [false],
     attributeDefinitions: new FormArray<AttributeDefinitionFormGroup>([]),
     variants: this.fb.array<VariantFormGroup>([]),
@@ -35,6 +46,8 @@ export class ProductFormData {
   }
 
   constructor() {
+    this.loadCurrentShop();
+
     this.form.controls.hasVariants.valueChanges.subscribe((hasVariants) => {
       if (!hasVariants) {
         this.variantsArray.clear();
@@ -42,16 +55,44 @@ export class ProductFormData {
     });
   }
 
-  buildMatrixFromDefinitions() {
+  private loadCurrentShop(): void {
+    this.shopApi.getMyShop().subscribe({
+      next: (shop) => this.currentShopId.set(shop.id),
+      error: (err) => console.error('Không thể tải thông tin Shop:', err),
+    });
+  }
+
+  addMedia(item: ProductMedia): void {
+    this.productMediaList.update((list) => [...list, item]);
+  }
+
+  removeMedia(index: number): void {
+    this.productMediaList.update((list) => {
+      const updated = list.filter((_, idx) => idx !== index);
+      if (updated.length > 0 && !updated.some((m) => m.isThumbnail)) {
+        updated[0] = { ...updated[0], isThumbnail: true };
+      }
+      return updated.map((m, idx) => ({ ...m, sortOrder: idx }));
+    });
+  }
+
+  setThumbnailIndex(targetIndex: number): void {
+    this.productMediaList.update((list) =>
+      list.map((m, idx) => ({
+        ...m,
+        isThumbnail: idx === targetIndex,
+      })),
+    );
+  }
+
+  buildMatrixFromDefinitions(): void {
     const definitions = this.attributeDefsArray.getRawValue();
 
-    // Lọc bỏ các nhóm thuộc tính trống không có tùy chọn nào
     const validGroups = definitions
       .map((group) => {
         if (!group.options || group.options.length === 0) {
           return { ...group, options: [] };
         }
-
         const lastIndex = group.options.length - 1;
         const lastOption = group.options[lastIndex];
         const isTrailingEmpty =
@@ -88,7 +129,6 @@ export class ProductFormData {
     const formattedCombinations = combinations.map((combo) => {
       const skuString =
         'SKU-' + combo.map((o) => o.name.toUpperCase()).join('-');
-
       const attributes: VariantAttributeInput[] = combo.map((o) => ({
         attributeId:
           o.attrId.startsWith('temp-') || o.attrId.length < 30
@@ -115,7 +155,7 @@ export class ProductFormData {
       attributes: VariantAttributeInput[];
       optionNames: string[];
     }[],
-  ) {
+  ): void {
     this.variantsArray.clear();
 
     combinations.forEach((combo) => {
@@ -126,6 +166,7 @@ export class ProductFormData {
         stockQuantity: [100, [Validators.required, Validators.min(0)]],
         attributes: this.fb.control(combo.attributes),
         optionNames: this.fb.control(combo.optionNames),
+        media: this.fb.control<ProductMedia[]>([]),
       });
 
       this.variantsArray.push(variantGroup);
@@ -134,21 +175,24 @@ export class ProductFormData {
 
   getSubmitPayload(): CreateProductRequest {
     const rawValue = this.form.getRawValue();
+    const shopId = this.currentShopId();
+
+    if (!shopId) {
+      throw new Error('Chưa tải được thông tin Shop. Vui lòng thử lại!');
+    }
+
+    const media = this.productMediaList();
+    if (media.length === 0) {
+      throw new Error('Vui lòng tải lên ít nhất 1 hình ảnh sản phẩm.');
+    }
 
     return {
-      shopId: 2,
+      shopId: shopId,
       categoryId: rawValue.basicInfo.categoryId,
-      name: rawValue.basicInfo.name,
-      description: rawValue.description,
-      imageUrl: 'https://dummyimage.com/600x400',
-      publicPrice: 0,
-      productMedia: [
-        {
-          mediaId: '00000000-0000-0000-0000-000000000001',
-          isThumbnail: true,
-          sortOrder: 0,
-        },
-      ],
+      name: rawValue.basicInfo.name.trim(),
+      description: rawValue.description.trim(),
+      specifications: this.specificationsList(), // Gom specs động đầy đủ
+      media: media,
       variants: rawValue.variants,
     };
   }

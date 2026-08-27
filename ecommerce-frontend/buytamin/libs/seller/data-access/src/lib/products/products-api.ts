@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 export class ProductApi {
   private readonly http = inject(HttpClient);
 
-  private readonly baseUrl = '/api/v1/products';
+  private readonly baseUrl = '/api/v1/seller/products';
 
   /**
    * API Tạo mới sản phẩm

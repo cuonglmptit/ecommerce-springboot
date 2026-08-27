@@ -3,10 +3,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ProductFormData } from '../product-form-data';
 import { CategoryTreeNode } from '@buytamin/seller/data-access';
 import { CategorySelector } from '../category-selector/category-selector';
+import { MediaUpload } from '../media-upload/media-upload';
 
 @Component({
   selector: 'seller-basic-info',
-  imports: [ReactiveFormsModule, CategorySelector],
+  imports: [ReactiveFormsModule, CategorySelector, MediaUpload],
   templateUrl: './basic-info.html',
   styleUrl: './basic-info.scss',
 })
@@ -32,8 +33,5 @@ export class BasicInfo {
     // 2. Lấy ID danh mục lá gán vào Reactive Form
     const leafCategory = path[path.length - 1];
     this.basicInfoGroup.controls.categoryId.setValue(leafCategory.id);
-
-    // 3. Bắn event báo cho ProductForm
-    this.categoryChanged.emit(leafCategory.id);
   }
 }

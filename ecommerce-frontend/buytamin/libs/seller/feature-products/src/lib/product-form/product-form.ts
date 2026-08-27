@@ -34,26 +34,10 @@ import { Shipping } from './shipping/shipping';
 export class ProductForm {
   private readonly formData = inject(ProductFormData);
   private readonly store = inject(Store);
-  private readonly categoryApi = inject(CategoryApi);
-  protected readonly specAttributes = signal<CategoryAttributeInfo[]>([]);
 
   protected readonly isCreating = this.store.selectSignal(
     productsFeature.selectIsCreating,
   );
-
-  onCategoryChanged(categoryId: number): void {
-    // Gọi API lấy thông số kỹ thuật (SPECIFICATION) của danh mục
-    this.categoryApi
-      .getCategoryAttributes(categoryId, 'SPECIFICATION')
-      .subscribe({
-        next: (res) => {
-          if (res.data) {
-            // Gán vào Signal ➔ ProductSpecification tự động nhận qua input()
-            this.specAttributes.set(res.data);
-          }
-        },
-      });
-  }
 
   onSubmit() {
     if (this.formData.form.invalid) {

@@ -1,2 +1,24 @@
-<p>Brand</p>
-<input type="text">
+<div class="specification-container">
+  @if (isLoading()) {
+    <p class="loading-hint">⏳ Đang tải thông số kỹ thuật ngành hàng...</p>
+  } @else {
+    @for (item of specAttributes(); track item.id) {
+      <div class="spec-field-row">
+        <label for="" [class.required]="!item.filterable">
+          {{ item.attribute.name }}
+        </label>
+
+        <div class="field-control">
+          <input
+            type="text"
+            [placeholder]="'Nhập ' + item.attribute.name.toLowerCase() + '...'"
+            [value]="specValues()[item.attribute.id] || ''"
+            (input)="onSpecChange(item, $any($event.target).value)"
+          />
+        </div>
+      </div>
+    } @empty {
+      <p class="empty-hint">Vui lòng chọn Ngành hàng ở mục "Thông tin cơ bản" để hiển thị thông số kỹ thuật.</p>
+    }
+  }
+</div>

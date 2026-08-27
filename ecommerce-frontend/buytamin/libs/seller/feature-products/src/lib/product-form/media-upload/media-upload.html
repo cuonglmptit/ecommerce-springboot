@@ -1,0 +1,62 @@
+<div class="media-upload-section">
+  <div class="section-header">
+    <label for="" class="field-label required">Hình ảnh sản phẩm</label>
+    <span class="hint-text">
+      ({{ mediaList().length }}/7) - Ảnh đầu tiên hoặc ảnh có nhãn "Ảnh bìa" sẽ đại diện cho sản phẩm.
+    </span>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">
+      ⚠️ {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="media-grid" (dragover)="onDragOver($event)" (drop)="onFileDrop($event)">
+    <!-- 1. Danh sách ảnh đã upload thành công -->
+    @for (item of mediaList(); track item.mediaId; let i = $index) {
+      <div class="media-card" [class.is-thumbnail]="item.isThumbnail">
+        <img [src]="item.url" [alt]="item.alt || 'Product Image'" class="media-preview" />
+
+        @if (item.isThumbnail) {
+          <span class="badge-thumbnail">Ảnh bìa</span>
+        } @else {
+          <button type="button" class="btn-set-cover" (click)="setThumbnail(i)">
+            Đặt làm ảnh bìa
+          </button>
+        }
+
+        <button type="button" class="btn-remove" (click)="removeMedia(i)" title="Xóa ảnh">
+          ✕
+        </button>
+
+        <span class="sort-order-tag">#{{ i + 1 }}</span>
+      </div>
+    }
+
+    <!-- 2. Danh sách ảnh đang tải lên (Loading Skeleton) -->
+    @for (loading of uploadingQueue(); track loading.tempId) {
+      <div class="media-card loading-card">
+        <div class="spinner"></div>
+        <span class="loading-filename">{{ loading.fileName }}</span>
+      </div>
+    }
+
+    <!-- 3. Nút bấm Upload khi chưa đầy 7 ảnh -->
+    @if (canUploadMore()) {
+      <label class="upload-dropzone">
+        <input
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          (change)="onFilesSelected($event)"
+        />
+        <div class="dropzone-content">
+          <span class="icon-upload">📷</span>
+          <span class="label-add">+ Thêm hình ảnh</span>
+          <span class="sub-label">Kéo thả hoặc bấm vào đây (Tối đa 10MB)</span>
+        </div>
+      </label>
+    }
+  </div>
+</div>

@@ -1,4 +1,10 @@
 <div [formGroup]="basicInfoGroup" class="basic-info-form">
+  <!-- 1. KHUNG UPLOAD ẢNH & CHỌN ẢNH BÌA -->
+  <div class="form-row media-row" style="margin-bottom: 20px;">
+    <seller-media-upload></seller-media-upload>
+  </div>
+
+  <!-- 2. TÊN SẢN PHẨM -->
   <div class="form-row">
     <label for="" class="field-label required">Tên sản phẩm</label>
     <div class="field-control">
@@ -10,10 +16,10 @@
     </div>
   </div>
 
+  <!-- 3. NGÀNH HÀNG -->
   <div class="form-row">
     <label for="" class="field-label required">Ngành hàng</label>
     <div class="field-control">
-      <!-- Input Read-only kiểu Shopee click để mở Modal -->
       <div class="category-selector-input"
            role="button"
            tabindex="0"
@@ -31,7 +37,6 @@
   </div>
 </div>
 
-<!-- Modal chọn ngành hàng với Signal Two-Way Binding [(visible)] -->
 <seller-category-selector
   [(visible)]="isCategoryModalVisible"
   (categoryConfirmed)="onCategoryConfirmed($event)"

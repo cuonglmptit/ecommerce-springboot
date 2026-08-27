@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SharedUtil } from './shared-util';
+import { MediaUpload } from './media-upload';
 
-describe('SharedUtil', () => {
-  let component: SharedUtil;
-  let fixture: ComponentFixture<SharedUtil>;
+describe('MediaUpload', () => {
+  let component: MediaUpload;
+  let fixture: ComponentFixture<MediaUpload>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedUtil],
+      imports: [MediaUpload],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SharedUtil);
+    fixture = TestBed.createComponent(MediaUpload);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
