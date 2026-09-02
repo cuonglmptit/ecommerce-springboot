@@ -214,6 +214,22 @@
   }
 }
 
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  // Hiệu ứng viền phát sáng khi người dùng kéo file vào vùng này
+  &.drag-over {
+    background-color: #fff7ed;
+    outline: 2px dashed #ff5722;
+    outline-offset: 4px;
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

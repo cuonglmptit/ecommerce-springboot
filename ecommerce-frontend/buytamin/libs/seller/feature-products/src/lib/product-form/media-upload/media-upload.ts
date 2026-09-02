@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MediaApi, MediaItemResponse } from '@buytamin/shared/data-access';
+import { FileDropzoneDirective } from '@buytamin/shared/ui-common';
 import { ProductFormData } from '../product-form-data';
 import { ProductMedia } from '@buytamin/seller/data-access';
 
@@ -8,13 +9,12 @@ interface UploadingItem {
   tempId: string;
   fileName: string;
   progress: boolean;
-  error?: string;
 }
 
 @Component({
   selector: 'seller-media-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FileDropzoneDirective],
   templateUrl: './media-upload.html',
   styleUrl: './media-upload.scss',
 })
@@ -22,7 +22,6 @@ export class MediaUpload {
   private readonly mediaApi = inject(MediaApi);
   protected readonly formDataService = inject(ProductFormData);
 
-  // Giới hạn nghiệp vụ sàn TMĐT
   private static readonly MAX_MEDIA_COUNT = 7;
   private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private static readonly ALLOWED_TYPES = [
@@ -31,18 +30,18 @@ export class MediaUpload {
     'image/webp',
   ];
 
-  // Signal quản lý danh sách ảnh đang upload dở (Loading spinner)
   protected readonly uploadingQueue = signal<UploadingItem[]>([]);
   protected readonly errorMessage = signal<string | null>(null);
 
-  // Danh sách ảnh đã upload thành công lấy trực tiếp từ Form State
   protected readonly mediaList = computed(() =>
     this.formDataService.productMediaList(),
   );
 
   protected readonly canUploadMore = computed(() => {
-    const total = this.mediaList().length + this.uploadingQueue().length;
-    return total < MediaUpload.MAX_MEDIA_COUNT;
+    return (
+      this.mediaList().length + this.uploadingQueue().length <
+      MediaUpload.MAX_MEDIA_COUNT
+    );
   });
 
   protected readonly remainingSlots = computed(() => {
@@ -53,9 +52,9 @@ export class MediaUpload {
   });
 
   /**
-   * Xử lý khi người bán chọn file qua hộp thoại hoặc kéo thả
+   * Xử lý khi người dùng chọn file qua nút bấm Input
    */
-  onFilesSelected(event: Event): void {
+  onInputFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
 
@@ -63,18 +62,10 @@ export class MediaUpload {
     input.value = ''; // Reset input để có thể chọn lại file cùng tên nếu muốn
   }
 
-  onFileDrop(event: DragEvent): void {
-    event.preventDefault();
-    if (!event.dataTransfer?.files) return;
-
-    this.processFiles(Array.from(event.dataTransfer.files));
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  private processFiles(files: File[]): void {
+  /**
+   * Hàm nhận danh sách File (từ nút bấm hoặc từ Directive kéo thả phát ra)
+   */
+  processFiles(files: File[]): void {
     this.errorMessage.set(null);
 
     const availableSlots = this.remainingSlots();
@@ -129,7 +120,7 @@ export class MediaUpload {
           mediaId: res.id,
           url: res.url,
           alt: res.alt || file.name,
-          isThumbnail: isFirstImage, // Ảnh đầu tiên mặc định là Thumbnail
+          isThumbnail: isFirstImage,
           sortOrder: this.mediaList().length,
         };
 
