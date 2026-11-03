@@ -1,0 +1,33 @@
+<div class="sales-info" [formGroup]="form">
+  @if (!hasVariants()) {
+    <input [formControl]="ccc">
+    <ng-container formArrayName="variants">
+      <div class="sales-info__single-form" [formGroupName]="0">
+        <button type="button" (click)="enableVariants()" class="sales-info__btn">Thêm phân loại</button>
+
+        <label for="" class="sales-info__label">Giá tiền</label>
+        <input type="number" class="sales-info__input" formControlName="price">
+
+        <label for="" class="sales-info__label">Kho hàng</label>
+        <input type="number" class="sales-info__input" formControlName="stockQuantity">
+      </div>
+    </ng-container>
+  } @else {
+    <div class="sales-info__variation-form">
+      <div class="variation-list">
+        for...
+        <div class="variation-item">
+          <button type="button" class="variation-list__add-btn">Thêm phân loại</button>
+          <label for="" class="variation-item__label">Variation x</label>
+          <input type="text" class="variation-item__input">
+
+          <label for="" class="variation-item__label">Options</label>
+          <div class="variation-item__options">
+            for...
+            <input type="text" class="variation-item__input">
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

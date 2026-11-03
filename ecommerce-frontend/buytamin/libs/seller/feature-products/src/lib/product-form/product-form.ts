@@ -14,6 +14,7 @@ import { ProductDescription } from './product-description/product-description';
 import { ProductSpecification } from './product-specification/product-specification';
 import { SalesInfo } from './sales-info/sales-info';
 import { Shipping } from './shipping/shipping';
+import { SalesIn4 } from './sales-info/sales-in4';
 
 @Component({
   selector: 'seller-product-form',
@@ -26,6 +27,7 @@ import { Shipping } from './shipping/shipping';
     ProductSpecification,
     SalesInfo,
     Shipping,
+    SalesIn4,
   ],
   templateUrl: './product-form.html',
   styleUrl: './product-form.scss',

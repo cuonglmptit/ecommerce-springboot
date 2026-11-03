@@ -1,0 +1,7 @@
+.sales-info{
+  display: flex;
+  &__single-form{
+    display: flex;
+    flex-direction: column;
+  }
+}

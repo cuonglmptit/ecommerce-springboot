@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import {
   AttributeDefinitionFormGroup,
@@ -9,11 +9,15 @@ import {
   VariantAttributeInput,
   VariantFormGroup,
 } from '@buytamin/seller/data-access';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class ProductFormData {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly shopApi = inject(ShopApi);
+
+  static readonly MAX_VARIANTS_ALLOWED = 50;
+  static readonly MAX_ATTRIBUTES_ALLOWED = 2;
 
   readonly currentShopId = signal<number | null>(null);
   readonly productMediaList = signal<ProductMedia[]>([]);
@@ -35,6 +39,18 @@ export class ProductFormData {
     hasVariants: [false],
     attributeDefinitions: new FormArray<AttributeDefinitionFormGroup>([]),
     variants: this.fb.array<VariantFormGroup>([]),
+  });
+
+  readonly formStatus = toSignal(
+    this.form.statusChanges,
+    { initialValue: this.form.status },
+  );
+
+  readonly isReadyToSubmit = computed(() => {
+    const formValid = this.formStatus() === 'VALID';
+    const hasMedia = this.productMediaList().length > 0;
+
+    return formValid && hasMedia;
   });
 
   get variantsArray(): FormArray<VariantFormGroup> {
